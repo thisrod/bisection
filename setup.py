@@ -69,6 +69,7 @@ h = (uR[:,-1]-uR[:,0])/usteps
 hU = (1/h).reshape((3,1))*U*h.reshape((1,3))
 
 # rotate initial and final potentials, find restricted interpolation grid
+# changed to test convergence and grid
 grid = indices(ushape).reshape((3,-1))
 rotgrid = dot(hU, grid-usteps[:,newaxis]/2) + usteps[:,newaxis]/2
 K0 = map_coordinates(uK0, rotgrid, cval=nan).reshape(ushape)
@@ -76,10 +77,12 @@ K1 = map_coordinates(uK1, rotgrid, cval=nan).reshape(ushape)
 support = array(nonzero(logical_or(K0 < Kcut, K1 < Kcut)))
 corner = support.min(axis=1)
 extent = support.max(axis=1) - corner + 1
+
 # trim one point from each end of z axis to avoid extrapolation
 corner[2] += 1;  extent[2] -= 2;
 grid = indices(extent).reshape((3,-1)) + corner[:,newaxis]
-rotgrid = dot(hU, grid-usteps[:,newaxis]/2) + usteps[:,newaxis]/2
+cent = (usteps - corner)[:,newaxis]/2
+rotgrid = dot(hU, grid-cent) + cent
 
 # trim axes
 x, y, z = [(ux, uy, uz)[i][corner[i]:corner[i]+extent[i]] for i in range(3)]
@@ -89,7 +92,14 @@ r = array([Q.flatten() for Q in meshgrid(x, y, z, indexing='ij')])
 K = empty((t.size,)+tuple(extent))
 for i in range(t.size):
 	vfile = loadmat('potentials/RWA_X_3D_' + str(i) + '.mat')
-	K[i,:,:,:] = map_coordinates(vfile['v'], rotgrid, cval=nan).reshape(extent)
+	K[i,:,:,:] = 0.1719*map_coordinates(vfile['v'], rotgrid, cval=nan).reshape(extent)
+assert not isnan(K).any()
+K -= Koff
+
+# find centres of mass.  only to plot sections, so trapezoid rule suffices
+wgt = exp(-K/(2*2.35**2)).reshape((t.size,1,-1))
+r0 = (r[newaxis,:,:]*wgt).sum(2)/wgt.sum(2)
+
 
 # Set up to find ground state
 steps = extent - 1
@@ -116,26 +126,19 @@ for i in range(100):
 	w *= sqrt(M/mm)
 print()
 
-# Save potentials and ground state
-savez('trap.npz', x=x, y=y, z=z, K=K, w0=w)
+# Save potentials, centres of weight and ground state
+savez('trap.npz', r0=r0, t=t, x=x, y=y, z=z, K=K, w0=w, N=M)
 
-# this is just for display, trapezoidal rule will do
-wgt = abs(w)**2
-rcm = (r*wgt.flatten()).sum(1)/wgt.sum()
 
 # plot sections through centre of weight
+rcm = r0[0,:]
 figure()
-fx = interp1d(x-rcm[0], wgt, axis=0)
-imshow(fx(0), extent=(z[0], z[-1], y[0], y[-1]), aspect='auto').set_cmap('gray')
-xlabel('z');  ylabel('y')
-savefig('gs1.pdf')
-figure()
-fy = interp1d(y-rcm[1], wgt, axis=1)
+fy = interp1d(y-rcm[1], abs(w)**2, axis=1)
 imshow(fy(0), extent=(z[0], z[-1], x[0], x[-1]), aspect='auto').set_cmap('gray')
 xlabel('z');  ylabel('x')
-savefig('gs2.pdf')
+savefig('gsxz.pdf')
 figure()
-fz = interp1d(z-rcm[2], wgt, axis=2)
+fz = interp1d(z-rcm[2], abs(w)**2, axis=2)
 imshow(fz(0), extent=(y[0], y[-1], x[0], x[-1]), aspect='auto').set_cmap('gray')
 xlabel('y');  ylabel('x')
-savefig('gs3.pdf')
+savefig('gsxy.pdf')
