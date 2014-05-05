@@ -14,7 +14,9 @@ from numpy import \
 from numpy.random import rand, randn, seed
 from numpy.fft import fft, ifft, fftn, ifftn, fftfreq
 from numpy.linalg import eig, norm, qr
+
+# work around Pyenv breaking the OSX backend for Matplotlib
+import matplotlib; matplotlib.use("Agg")
 from matplotlib.pyplot import colorbar, contour, contourf, figure, imshow, legend, loglog, plot, savefig, semilogy, subplot, text, title, xlabel, ylabel, xlim, ylim, xticks, yticks
-import h5py
 
 seed(666)		# repeatability

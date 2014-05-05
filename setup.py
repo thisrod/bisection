@@ -12,7 +12,6 @@ the transform matrix is saved to align.npy
 from stdlib import *
 import sys
 from numpy import savez
-import h5py
 from scipy.io import loadmat
 from scipy.integrate import simps
 from scipy.interpolate import interp1d, interp2d
