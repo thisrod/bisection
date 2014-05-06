@@ -14,6 +14,7 @@ from scipy.interpolate import interp1d, interp2d
 # Load trap data
 tfile = load('trap.npz')
 r0, w0, y, x, K, z, t, N = [tfile[s] for s in ['r0', 'w0', 'y', 'x', 'K', 'z', 't', 'N']]
+w0 = w0[0,:,:,:]
 
 r = array([Q.flatten() for Q in meshgrid(x, y, z, indexing='ij')])
 h = (r[:,-1]-r[:,0])/(array(w0.shape)-1)

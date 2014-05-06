@@ -12,6 +12,7 @@ samples = 10
 # Load trap data
 tfile = load('trap.npz')
 r0, w0, y, x, K, z, t, M = [tfile[s] for s in ['r0', 'w0', 'y', 'x', 'K', 'z', 't', 'N']]
+w0 = w0[0,:,:,:]
 
 r = array([Q.flatten() for Q in meshgrid(x, y, z, indexing='ij')])
 h = (r[:,-1]-r[:,0])/(array(w0.shape)-1)
