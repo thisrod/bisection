@@ -3,8 +3,8 @@
 # This doesn't import any interpolation routines: Python keeps reinventing that wheel, going from square to pentagonal to triangular.  See scipy.ndimage.interpolation and scipy.interpolate
 
 from numpy import \
-	abs, amax, amin, all, arange, argmax, array, \
-	ceil, concatenate, diagflat, diagonal, dot, empty, eye, \
+	abs, amax, amin, all, allclose, arange, argmax, array, \
+	ceil, concatenate, diag, diagflat, diagonal, dot, empty, eye, \
 	floor, indices, isnan, linspace, load, log, log10, logspace, \
 	logical_not, logical_or, \
 	mean, meshgrid, nan, ndarray, newaxis, nonzero, \

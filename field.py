@@ -1,48 +1,75 @@
 from stdlib import *
 from numpy import savez
 from os.path import isfile
+from copy import copy
 
 # these classes are minimal: we add things to them that are required in several scripts.
 
 _albls = ['_s', '_x', '_y', '_z']
 
 class Grid:
-	"The coordinates (s,x,y,z) on the grid represent the point (s,O+U(x,y,z)) in 3+1 dimensional space.  This is just bookeeping for the resampling methods: all operations on a single grid refer to that grid's coordinates, and don't depend on the origin or orientation.  The grid must be even and rectangular for resampling to work."
+	"""
+All operations on a single grid refer to that grid's coordinates. To manage the bookeeping for interpolation, these grids are related to a common set of coordinates by the relations r = p+Hi and R = o+HUi, where r is a set of grid coordinates, i is an index in the grid, and R is a set of common coordinates.  We will refer to p as the index origin, and o as the grid origin.  U is a unitary matrix, that doesn't rotate the time axis.
+"""
 	
 	# the stored attributes are:
 	#	self.shape
 	#	self.o
+	#	self.p
 	#	self.h
 	#	self.U
-	# U is a unitary matrix, the rest are vectors.  shape is the size of the grid; a point with index vector i is located at r=o+h*(U.i)
+	# U is a unitary matrix, the rest are vectors.  H is the matrix with the vector h along its diagonal.  The vectors are stored with shape (4,1,1,1,1), for broadcasting over grids.
 	
 	def __init__(self, s, x, y, z, origin=zeros(4), orientation=eye(3)):
-		# FIXME: origin is redundant, because the axes can start away from zero.  it should denote the point in R^n that stays fixed when the grid is rotated.
+		"""
+The grid coordinates are defined by the axes s, x, y and z.  These should be ndarrays; the constructor assumes the values are evenly spaced, and deduces the spacing from the first and last coordinates.  The origin of the grid is implied by where the values in the axis arrays.
+
+The parameters origin and orientation define where the grid sits in R^4.  Origin is the point in common coordinates at which s=x=y=z=0; orientation is the unitary matrix U from the coordinate relation.  Note that the coordinate origin, provided as a parameter, is not generally the same as the index origin, stored as self.o.
+"""
+		# from the coordinate relations, with r=0 and R=origin, it follows that
+		# o = origin + HUH^-1 p
 		axes = [q.flatten() for q in [s, x, y, z]]
 		self.shape = tuple(q.size for q in axes)
-		self.o = origin.reshape((4,1,1,1,1))
 		assert allclose(dot(orientation.T, orientation), eye(3))
 		self.U = zeros((4,4));  self.U[1:,1:] = orientation;  self.U[0,0] = 1
-		self.h = array([ptp(q) for q in axes])/array(self.shape)
-		self.h = self.h.reshape((4,1,1,1,1))
+		self.h = array([ptp(q) for q in axes])/(array(self.shape)-1)
+		self.h[isnan(self.h)] = 0
+		self.p = array([q[0] for q in axes])
+		self.o = origin + self.h*dot(self.U,self.p/self.h)
+		vector = (4,1,1,1,1)
+		self.h.resize(vector);  self.p.resize(vector);  self.o.resize(vector)
 		
 	def axes(self):
-		return [a*arange(n) for a, n in zip(self.h, self.shape)]
+		return [p+h*arange(n) for p, h, n in zip(self.p, self.h, self.shape)]
 		
 	def r(self):
-		"Coordinates of points wrt grid"
+		"grid coordinates of points"
 		return array(meshgrid(*self.axes(), indexing='ij'))
 		
 	def R(self):
-		"Coordinates of points in R^n"
-		return self.o + self.h*dot(self.U, self.r())
+		"common coordinates of points"
+		return self.o + self.h*dot(self.U, indices(self.shape))
 		
 	def indices_for(self, R):
 		"this assumes R has shape ...*4*?*?*?*?, as grid coordinates conventionally do"
 		return dot(self.U.T, (R-self.o)/self.h)
 		
 	def bounds(self):
-		return array([[q.min(), q.max()] for q in self.axes])
+		return array([[q.min(), q.max()] for q in self.axes()]).T
+		
+	# transformation
+	
+	def shifted(self, new_origin):
+		# index origin not changed in common coordinates,
+		# moved by -new_origin in grid coordinates.
+		S = copy(self)
+		S.p -= new_origin.reshape((4,1,1,1,1))
+		return S
+		
+	def rotated(self, U):
+		"Unlike shifted, this returns a different set of points"
+		# return grid transfomed by U about its origin
+		pass
 	
 	# loading and saving to file
 	
@@ -60,14 +87,15 @@ class Grid:
 		return empty(self.shape)
 		
 	def __eq__(self, other):
+		assert False
 		return all([(q == p).all() for q, p in zip(self.axes, other.axes)])
 		
 	def __neq__(self, other):
 		return not self.__eq__(other)
 		
 	def rr(self):
-		"Return a 3*3*1*shape[1:] array of inertia tensors about the origin for a unit mass at each point."
-		r = self.r[1:,0:1,::]
+		"Return a 3*3*1*shape[1:] array of inertia tensors about the grid origin for a unit mass at each point."
+		r = self.r()[1:,0:1,::]
 		P = -r[newaxis,::]*r[:,newaxis,::]
 		# hack strides to address the diagonal plane of P
 		Pd = ndarray(buffer=P, dtype=P.dtype, \
@@ -76,8 +104,8 @@ class Grid:
 		return P
 		
 	def S(self, ordinates):
-		# integrate over space - for now, this is just a sum, dV assumed to cancel out.
-		return(ordinates.sum((-3, -2, -1)))
+		# integrate over space
+		return prod(self.h[1:])*ordinates.sum((-3, -2, -1))
 		
 		
 	
