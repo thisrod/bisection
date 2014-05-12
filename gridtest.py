@@ -11,3 +11,8 @@ assert allclose(axs[1], tax[1])
 assert allclose(axs[2], tax[2])
 assert allclose(axs[3], tax[3])
 assert allclose(T.bounds(), bds)
+
+# test rotation
+T = Grid(*axs)
+U = array([[cos(pi/6), -sin(pi/6), 0], [sin(pi/6), cos(pi/6), 0], [0, 0, 1]])
+assert allclose(T.rotated(U).R(), dot(U, T.R()))
