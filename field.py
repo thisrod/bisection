@@ -20,6 +20,7 @@ All operations on a single grid refer to that grid's coordinates. To manage the 
 	#	self.h
 	#	self.U
 	# U is a unitary 3*3 matrix, the rest are vectors.  H is the matrix with the vector h along its diagonal.  The vectors are stored with shape (4,1,1,1,1), for broadcasting over grids.
+	# the vectors come in o3, p3, h3 and U3 versions, with only the space dimensions
 	
 	def __init__(self, s, x, y, z, origin=zeros(4), orientation=eye(3)):
 		"""
@@ -32,27 +33,54 @@ The parameters origin and orientation define where the grid sits in R^4.  Origin
 	
 		# from the coordinate relations, with r=0 and R=origin, it follows that
 		# o = origin + HUH^-1 p
+		
+		# use step 1 for singleton axes in sections, to make H invertible
 		axes = [q.flatten() for q in [s, x, y, z]]
-		self.shape = tuple(q.size for q in axes)
-		# striding lets us have 3*3 cake and eat 4*4 too
-		V = eye(4);  self.U4 = V
-		self.U = ndarray(buffer=V, dtype=V.dtype, shape=(3,3), \
-			strides=V.strides)
-		self.U[:,:] = orientation
-		assert allclose(dot(self.U.T, self.U), eye(3))
-		self.h = array([ptp(q) for q in axes])/(array(self.shape)-1)
-		self.h[isnan(self.h)] = 0
-		self.p = array([q[0] for q in axes])
-		self.o = origin + self.h*dot(self.U4,self.p/self.h)
+		N = array([q.size for q in axes])
+		self._configure(
+			shape=N,
+			h=[1 if n==1 else ptp(q)/(n-1) for n, q in zip(N, axes)],
+			U=orientation,
+			p=[q[0] for q in axes],
+			o=empty(4))
+		self.be_flat()
+		self._configure(o=array(origin) + self.h*dot(self.U4,self.p/self.h))
 		self.be_broad()
+
+	def _configure(self, **args):
+		"set up instance variables and assert sanity"
+		# striding lets us have 3*3 cake and eat 4*4 too
+		
+		assert set(args.keys()).issubset(set(['shape', 'o', 'p', 'h', 'U']))
+		if 'shape' in args:
+			self.shape = tuple(args['shape'])
+			assert len(self.shape) == 4
+			assert all(n>0 for n in self.shape)
+		if 'U' in args:
+			V = eye(4);  self.U4 = V
+			self.U = ndarray(buffer=V, dtype=V.dtype, shape=(3,3), \
+				strides=V.strides)
+			self.U[:,:] = args['U']
+			assert allclose(dot(self.U.T, self.U), eye(3))
+		if 'h' in args:
+			self.h = array(args['h'])
+			self.h3 = 
+			assert self.h.size == 4
+			assert (h>0).all()
+		if 'p' in args:
+			self.p = array(args['p'])
+			assert self.p.size == 4
+		if 'o' in args:
+			self.o = array(args['o'])
+			assert self.o.size == 4
+
+	def be_broad(self):
+		self.h.resize(_vector);  self.p.resize(_vector);  self.o.resize(_vector)
 		
 	def be_flat(self):
 		self.h = self.h.flatten()
 		self.p = self.p.flatten()
 		self.o = self.o.flatten()
-
-	def be_broad(self):
-		self.h.resize(_vector);  self.p.resize(_vector);  self.o.resize(_vector)
 		
 	def axes(self):
 		return [p+h*arange(n) for p, h, n in zip(self.p, self.h, self.shape)]
@@ -97,9 +125,10 @@ The parameters origin and orientation define where the grid sits in R^4.  Origin
 		S = copy(self)
 		S.be_flat()
 		Rc = S.o + S.h*dot(S.U4, (centre-S.p)/S.h)
-		S.o = Rc + dot(U,S.o-Rc)
-		assert False
-		S.U = dot(diagflat(1/S.h), dot(U, S.h*S.U))
+		h = S.h[1:]
+		S._configure(U=U)
+		S._configure(o=Rc + dot(S.U4,self.o-Rc))
+		S._configure(U=dot(diagflat(1/h), dot(U, h*self.U)))
 		S.be_broad()
 		return S
 	
