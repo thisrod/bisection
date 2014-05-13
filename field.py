@@ -4,102 +4,153 @@ from os.path import isfile
 from copy import copy
 from scipy.ndimage.interpolation import map_coordinates
 
-# TODO: extrapolation inserts nans, support counts nans as zero
+# cartesian products, variable dimension of common coordinate space, grids of lower rank than coordinate space dimension (rank, dimension are identifiers)
+# TODO extrapolation inserts nans, support counts nans as zero
+# Field as a subclass of ndarray
 
 _albls = ['_s', '_x', '_y', '_z']
-_vector = (4,1,1,1,1)		# shape in which Grid stores its defining vectors
 
 class Grid:
 	"""
-All operations on a single grid refer to that grid's coordinates. To manage the bookeeping for interpolation, these grids are related to a common set of coordinates by the relations r = p+Hi and R = o+HUi, where r is a set of grid coordinates, i is an index in the grid, and R is a set of common coordinates.  We will refer to p as the index origin, and o as the grid origin.  U is a unitary matrix, that doesn't rotate the time axis.
+All operations on a single grid refer to that grid's coordinates.
 """
-	
 
-	# See geometry.tex for the geometric definitions of the instance variables.
-	# U is a unitary 3*3 matrix, the rest are vectors.  H is the matrix with the vector h along its diagonal.  The vectors are stored with shape (4,1,1,1,1), for broadcasting over grids.
-	# the vectors come in o3, p3, h3 and U3 versions, with only the space dimensions.  
-	# there are also ov, pv and h3, which are constant vector fields
-	
-	def __init__(self, s, x, y, z, origin=zeros(4), orientation=eye(3)):
-		"""
-The grid coordinates are defined by the axes s, x, y and z.  These should be ndarrays; the constructor assumes the values are evenly spaced, and deduces the spacing from the first and last coordinates.  The origin of the grid is implied by where the values in the axis arrays.
-
-The parameters origin and orientation define where the grid sits in R^4.  Origin is the point in common coordinates at which s=x=y=z=0; orientation is the unitary matrix U from the coordinate relation.  Note that the coordinate origin, provided as a parameter, is not generally the same as the index origin, stored as self.o.
-"""
-		# TODO: implement sections by allowing U to be rectangular
 		# integrating a field can return a lower-dimensional field
 		
-		# step 1 is used for singleton axes to make H invertible
-		axes = [q.flatten() for q in [s, x, y, z]]
-		N = array([q.size for q in axes])
-		self._configure(
-			shape=N,
-			h=[1 if n==1 else ptp(q)/(n-1) for n, q in zip(N, axes)],
-			U=orientation,
-			p=[q[0] for q in axes],
-			o=empty(4))
-		self._configure(o=array(origin) + dot(self.U,self.p))
-
-	def _configure(self, **args):
-		"set up instance variables and assert sanity"
+	def __str__(self):
+		return "<grid " + " in R^" + str(self.dim()) + \
+			" shape " + str(self.shape) + \
+			" over " + str([tuple(b) for b in self.bounds()]) + ">"
+			
+	def __repr__(self):
+		return str(self)
 		
-		assert set(args.keys()).issubset(set(['shape', 'o', 'p', 'h', 'U']))
-		if 'shape' in args:
-			self.shape = tuple(args['shape'])
-			assert len(self.shape) == 4
-			assert all(n>0 for n in self.shape)
-		if 'U' in args:
-			W = eye(4);  self.U = W
-			self.U3 = W[1:,1:]
-			self.U3[::] = args['U']
-			assert allclose(dot(self.U3.T, self.U3), eye(3))
-		if 'h' in args:
-			self.h = array(args['h'])
-			assert self.h.size == 4
-			assert (self.h>0).all()
-			self.h3 = self.h[1:]
-			self.hv = self.h.reshape(_vector)
-		if 'p' in args:
-			self.p = array(args['p'])
-			assert self.p.size == 4
-			self.p3 = self.p[1:]
-			self.pv = self.p.reshape(_vector)
-		if 'o' in args:
-			self.o = array(args['o'])
-			assert self.o.size == 4
-			self.o3 = self.o[1:]
-			self.ov = self.o.reshape(_vector)
+	#
+	# construction
+	#
+		
+	@classmethod
+	def from_axes(cls, *axes):
+		axes = [array(q).flatten() for q in axes]
+		N = array([q.size for q in axes])
+		origin = [q[0] for q in axes]
+		return cls(
+			shape=N,
+			h=[ptp(q)/(n-1) for n, q in zip(N, axes)],
+			U=eye(len(N)),
+			p=origin,
+			o=origin)
+	
+	@classmethod
+	def default(cls):
+		ffile = load('fields.npz')
+		return cls.from_axes(*[ffile[q] for q in _albls])
+
+	def __init__(self, shape, o, p, h, U):
+		# instance variables explained in geometry.tex
+		self.U = array(U, dtype=float)
+		assert allclose(dot(self.U.T, self.U), eye(self.rank()))
+		self.shape = tuple(int(n) for n in shape)
+		assert len(self.shape) == self.rank()
+		assert all(n>1 for n in self.shape)
+		self.h = array(h, dtype=float).reshape((self.rank(),))
+		assert (self.h>0).all()
+		self.p = array(p, dtype=float).reshape((self.rank(),))
+		self.o = array(o, dtype=float).reshape((self.dim(),))
+			
+	def __mul__(self, other):
+		"cartesian product of grids on cartesian product of common coordinates"
+		U = zeros((self.dim()+other.dim(), self.rank()+other.rank()))
+		U[:self.dim(),:self.rank()] = self.U
+		U[self.dim():,self.rank():] = other.U
+		return Grid(
+			shape = self.shape + other.shape,
+			o = concatenate((self.o, other.o)),
+			p = concatenate((self.p, other.p)),
+			h = concatenate((self.h, other.h)),
+			U = U)
+	
+	#
+	# basic properties
+	#
+	
+	def rank(self):
+		"return the rank of arrays of samples"
+		return self.U.shape[1]
+		
+	def dim(self):
+		"return the dimension of the common coordinate space"
+		return self.U.shape[0]
 		
 	def axes(self):
 		return [p+h*arange(n) for p, h, n in zip(self.p, self.h, self.shape)]
 		
-	def origin(self):
-		"return origin as would be passed to constructor"
-		return self.o - dot(self.U, self.p)
-		
-	def r(self):
-		"grid coordinates of points"
-		return array(meshgrid(*self.axes(), indexing='ij'))
-		
-	def R(self, i=None):
-		"""common coordinates of points at given indices, by default the grid indices.
-		"""
-		assert i is None
-		return self.ov + tensordot(self.U, self.hv*indices(self.shape), 1)
-		
-	def indices_for(self, R):
-		"R has shape 4*whatever, as grid coordinates conventionally do"
-		return tensordot(self.U.T, R-self.ov, 1)/self.hv
-		
 	def bounds(self):
-		return array([[q.min(), q.max()] for q in self.axes()]).T
+		return array([[q.min(), q.max()] for q in self.axes()])
+			
+	#
+	# indices and coordinates
+	# these assume the first axis of the coordinate arrays is the components
+	# if we don't have full rank, project othogonally
+	#
 		
+	def r(self, i=None, R=None):
+		assert i is None or R is None
+		if i is not None:
+			i = array(i)
+			h, p, o = self._vectors(i)
+			return p + h*i
+		if R is not None:
+			R = array(R)
+			h, p, o = self._vectors(R)
+			return p + tensordot(self.U.T, R-o, 1)		
+		else:
+			return array(meshgrid(*self.axes(), indexing='ij'))
+		
+	def R(self, i=None, r=None):
+		assert i is None or r is None
+		if i is None and r is None:
+			i = indices(self.shape)
+		if i is not None:
+			i = array(i)
+			h, p, o = self._vectors(i)
+			return o + tensordot(self.U, h*i, 1)
+		if r is not None:
+			r = array(r)
+			h, p, o = self._vectors(r)
+			return o + tensordot(self.U, r-p, 1)	
+		
+	def i(self, r=None, R=None):
+		assert r is None or R is None
+		if r is not None:
+			r = array(r)
+			h, p, o = self._vectors(r)
+			return (r-p)/h
+		if R is not None:
+			R = array(R)
+			h, p, o = self._vectors(R)
+			return tensordot(self.U.T, R-o, 1)/h
+		else:
+			return indices(self.shape)
+		
+	#
+	# utility
+	# 
+	
+	def _vectors(self, A):
+		"return h, p,and  o, reshaped to broadcast over A"
+		tail = (1,)*(A.ndim-1)
+		return self.h.reshape((self.rank(),)+tail), \
+			self.p.reshape((self.rank(),)+tail), \
+			self.o.reshape((self.dim(),)+tail)
+	
 	# transformation
 	
 	def shifted(self, new_origin):
 		# index origin not changed in common coordinates,
 		# moved by -new_origin in grid coordinates.
 		S = copy(self)
+		new_origin = concatenate(([0], new_origin))
 		S._configure(p=self.p - new_origin)
 		return S
 		
@@ -119,11 +170,6 @@ The parameters origin and orientation define where the grid sits in R^4.  Origin
 		return S
 	
 	# loading and saving to file
-	
-	@classmethod
-	def default(cls):
-		ffile = load('fields.npz')
-		return cls(*[ffile[q] for q in _albls])
 		
 	def be_default(self):
 		ftab = dict(load('fields.npz'))
@@ -179,8 +225,11 @@ class Field:
 	Field just packs up a grid and a set of samples.  plan: anything we can do with a Field, we can do with the Grid and the array of samples.
 	"""
 	
+	# TODO: allow constant fields, where the ordinate rank is one less than the abscissae.
+	# interpolation can just slice the index array, support doesn't change the time axis.
+	
 	def __init__(self, ordinates, abscissae=Grid.default(), label=None):
-		assert abscissae.shape == ordinates.shape
+		assert abscissae.shape[-4:] == ordinates.shape
 		self.abscissae, self.ordinates = abscissae, ordinates
 		if label:
 			self._label = label
@@ -205,3 +254,13 @@ class Field:
 		"return a Grid with origin at my centre of mass, and axes aligned to my principle axes.  only sensible for scalar fields."
 		assert False
 		
+
+class ConstantField:
+	"A 3 dimensional field"
+
+	def __init__(self, ordinates, abscissae=Grid.default(), label=None):
+		assert abscissae.shape[-3:] == ordinates.shape[-3:]
+		self.abscissae, self.ordinates = abscissae, ordinates
+		
+	def samples(self, points):
+		return map_coordinates(self.ordinates, self.abscissae.indices_for(points.R()), cval=nan)
