@@ -2,6 +2,9 @@ from stdlib import *
 from numpy import savez
 from os.path import isfile
 from copy import copy
+from scipy.ndimage.interpolation import map_coordinates
+
+# TODO: extrapolation inserts nans, support counts nans as zero
 
 _albls = ['_s', '_x', '_y', '_z']
 _vector = (4,1,1,1,1)		# shape in which Grid stores its defining vectors
@@ -100,6 +103,10 @@ The parameters origin and orientation define where the grid sits in R^4.  Origin
 		S._configure(p=self.p - new_origin)
 		return S
 		
+	def translated(self, dr):
+		"Shift the grid points, instead of the coordinates"
+		assert False
+		
 	def rotated(self, V, centre=None):
 		"return grid transfomed by V about centre (centre is in grid coordinates).  unlike shifted, this returns a different set of points"
 		if centre is None:
@@ -147,6 +154,13 @@ The parameters origin and orientation define where the grid sits in R^4.  Origin
 		# integrate over space
 		return prod(self.h3)*ordinates.sum((-3, -2, -1))
 		
+	def sample(self, fld):
+		return Field(fld.samples(self), self)
+	
+	def subgrid(self, corner, shape):
+		return Grid(*[q[c:c+s] for q, c, s in zip(self.axes(), corner, shape)],
+			orientation=self.U3, origin=self.origin())
+		
 		
 	
 # For now, load and store read and write the whole file every time a
@@ -180,7 +194,12 @@ class Field:
 		savez('fields.npz', **ftab)
 	
 	def samples(self, points):
-		return map_coordinates(self.ordinates, self.abscissae.indices_for(points.R))
+		return map_coordinates(self.ordinates, self.abscissae.indices_for(points.R()), cval=nan)
+
+	def support(self, cut=0):
+		"return a subset of the sampling grid, where my values exceed cutoff"
+		bools = array(nonzero(self.ordinates>cut))
+		return self.abscissae.subgrid(bools.min(axis=1), bools.ptp(axis=1) + 1)
 	
 	def central_frame(self):
 		"return a Grid with origin at my centre of mass, and axes aligned to my principle axes.  only sensible for scalar fields."
