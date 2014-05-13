@@ -219,20 +219,22 @@ def load_field(lbl):
 	return Field(ffile[lbl], label=lbl)
 	
 
-class Field:
-	"""A three plus 1 dimensional field.
+class Field(ndarray):
 	
-	Field just packs up a grid and a set of samples.  plan: anything we can do with a Field, we can do with the Grid and the array of samples.
-	"""
-	
-	# TODO: allow constant fields, where the ordinate rank is one less than the abscissae.
-	# interpolation can just slice the index array, support doesn't change the time axis.
-	
-	def __init__(self, ordinates, abscissae=Grid.default(), label=None):
-		assert abscissae.shape[-4:] == ordinates.shape
-		self.abscissae, self.ordinates = abscissae, ordinates
-		if label:
-			self._label = label
+	def __new__(cls, ordinates, abscissae=Grid.default(), label=None):
+		obj = asarray(ordinates).view(cls)
+		obj.abscissae = abscissae
+		assert obj.shape == obj.abscissae.shape
+		if label is not None:
+			obj.label = label
+		return obj
+				
+	def __array_finalize__(self, obj):
+		if obj is None: return
+		self.abscissae = getattr(obj, 'abscissae', None)
+		# catch reductions
+		if self.abscissae:
+			assert self.shape == self.abscissae.shape
 		
 	def save(self, label=None):
 		if label:
@@ -253,14 +255,3 @@ class Field:
 	def central_frame(self):
 		"return a Grid with origin at my centre of mass, and axes aligned to my principle axes.  only sensible for scalar fields."
 		assert False
-		
-
-class ConstantField:
-	"A 3 dimensional field"
-
-	def __init__(self, ordinates, abscissae=Grid.default(), label=None):
-		assert abscissae.shape[-3:] == ordinates.shape[-3:]
-		self.abscissae, self.ordinates = abscissae, ordinates
-		
-	def samples(self, points):
-		return map_coordinates(self.ordinates, self.abscissae.indices_for(points.R()), cval=nan)

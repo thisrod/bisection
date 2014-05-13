@@ -5,7 +5,6 @@ The trap-aligned frame is defined by the centre of mass and principle axes of th
 """
 
 from field import *
-from stdlib import *
 from scipy.io import loadmat
 
 # everything is in dispersion units, 10^-7 m
@@ -14,20 +13,20 @@ from scipy.io import loadmat
 
 Kcut = 10		# potential at which to truncate grid V
 N = 7e3		# number of atoms
-s = 1e-3*arange(18)/1.368e-5; 		# times samples supplied
+s = Grid.from_axes(1e-3*arange(18)/1.368e-5)	# times samples supplied
 
 # load supplied grid
 vfile = loadmat('potentials/RWA_X_3D_0.mat')
-T = Grid(array(0), *[10*vfile[q] for q in ['x', 'y', 'z']])
+T = Grid.from_axes(*[10*vfile[q] for q in ['x', 'y', 'z']])
 
 # load final potential, shift to avoid underflow
 K = 0.1719*loadmat('potentials/RWA_X_3D_17.mat')['v']
 K -= K.min()
-wgt = exp(-K/(2*2.88**2))
 
 # shift grid origin to centre of weight
+wgt = exp(-K/(2*2.88**2))
 r0 = T.S(T.r()*wgt)/T.S(wgt)
-T = T.shifted(r0.flatten())
+T = T.shifted(r0)
 
 # find the principal axes and
 # set U to the rotation from the trap-aligned frame to the original data frame

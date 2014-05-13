@@ -4,6 +4,7 @@ x = arange(2);  y = 0.3*arange(3);  z = pi+arange(5)
 R = Grid.from_axes(x, y, z)
 s = Grid.from_axes([0, 17])
 T = s*R
+f = Field(R.blank(), R)
 
 e = array([[1,1,1],[1,3,2]]).T
 assert allclose(R.r(), R.r(i=indices(R.shape)))
