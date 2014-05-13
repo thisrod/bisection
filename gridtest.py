@@ -15,4 +15,7 @@ assert allclose(T.bounds(), bds)
 # test rotation
 T = Grid(*axs)
 U = array([[cos(pi/6), -sin(pi/6), 0], [sin(pi/6), cos(pi/6), 0], [0, 0, 1]])
-assert allclose(T.rotated(U).R(), dot(U, T.R()))
+R = T.rotated(U).R() - T.origin().reshape((4,1,1,1,1))
+S = T.R() - T.origin().reshape((4,1,1,1,1))
+assert allclose(R[0,::], S[0,::])
+assert allclose(R[1:,::], tensordot(U, S[1:,::], 1))

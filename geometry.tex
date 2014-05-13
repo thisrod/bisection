@@ -1,0 +1,21 @@
+A {\tt Grid} can be described by three sets of vector coordinates: indices $i$, grid coordinates $r$, and common coordinates $R$.  Grids are rectangular, so indices and grid coordinates are related by scaling and shifting to the index origin $p$, as
+$$r=p+Hi.$$
+Here, $H$ is a matrix with the grid steps $h$ along its diagonal.  All vectors so far are have 4 components.
+
+Grid coordinates fit into common coordinates by rotating the grid to its orientation $U$, a unitary matrix, and shifting it so that the point with index $i=0$ lies at the grid origin $o$.  This looks like
+$$R=U(r-p)+o=UHi+o.$$
+The matrix $U$ only rotates the spatial components, and leaves the time axis fixed.
+
+The {\tt Grid} constructor infers the index origin $p$ from the supplied axes.  It takes an explicit origin $R_0$, the common coordinates for the point $r=0$.  From this it can deduce
+$$o=R_0+Up.$$
+
+When a grid is rotated by a unitary matrix $V$ about a centre $R_c$, the equations to be satisfied are $r'=r$ and $R'-R_c=V(R-R_c)$, for all indices.  Obviously the grid steps stay constant under rotation.  This gives $p'=p$, and
+$$U'Hi+o'-R_c=V(UHi+o-R_c),$$
+whence
+$$o'=R_c-VR_c+Vo$$
+and
+$$U'=VU.$$
+
+
+
+\bye

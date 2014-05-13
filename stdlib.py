@@ -10,7 +10,7 @@ from numpy import \
 	mean, meshgrid, nan, ndarray, newaxis, nonzero, \
 	pi, prod, ptp, \
 	sign, sqrt, zeros, \
-	exp, sin, cos, tan
+	exp, sin, cos, tan, tensordot
 from numpy.random import rand, randn, seed
 from numpy.fft import fft, ifft, fftn, ifftn, fftfreq
 from numpy.linalg import eig, norm, qr
