@@ -26,10 +26,11 @@ K -= K.min()
 # shift grid origin to centre of weight
 wgt = exp(-K/(2*2.88**2))
 T = T.shifted((wgt.r()*wgt).S()/wgt.S())
+wgt = Field(wgt, T)
 
 # find the principal axes and
 # set U to the rotation from the trap-aligned frame to the original data frame
-ew, ev = eig(T.S(wgt*T.rr())[:,:,0])
+ew, ev = eig((wgt*wgt.rr()).S())
 U = ev[:,(1,2,0)]	# order of increasing moments is z, x, y
 U = dot(U, diagflat(sign(diag(U))))	# align senses
 S = T.rotated(U)

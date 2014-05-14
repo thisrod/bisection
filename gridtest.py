@@ -4,9 +4,11 @@ x = arange(2);  y = 0.3*arange(3);  z = pi+arange(5)
 R = Grid.from_axes(x, y, z)
 s = Grid.from_axes([0, 17])
 T = s*R
-f = Field(R.blank(), R)
+f = Field(R.blank(), R);  f[::] = 1
 
 e = array([[1,1,1],[1,3,2]]).T
+assert all(type(x) is Field for x in [f.i(), f.r(), f.R(), f.rr()])
+assert all(type(x) is ndarray for x in [R.i(r=e), R.r(i=e), R.R(i=3), R.rr(r=e)])
 assert allclose(R.r(), R.r(i=indices(R.shape)))
 assert allclose(R.r(R=e), e)
 

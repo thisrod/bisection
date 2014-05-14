@@ -105,7 +105,7 @@ All operations on a single grid refer to that grid's coordinates.
 			h, p, o = self._vectors(R)
 			return p + tensordot(self.U.T, R-o, 1)		
 		else:
-			return self.r(i=self.i())
+			return Field(self.r(i=self.i()), self)
 		
 	def R(self, i=None, r=None):
 		"""convert indices or grid coordinates to common coordinates.
@@ -122,7 +122,7 @@ when called with no arguments, return a field of the common coordinates for each
 			h, p, o = self._vectors(r)
 			return o + tensordot(self.U, r-p, 1)
 		else:
-			return self.R(i=self.i())
+			return Field(self.R(i=self.i()), self)
 		
 	def i(self, r=None, R=None):
 		assert r is None or R is None
@@ -136,6 +136,19 @@ when called with no arguments, return a field of the common coordinates for each
 			return tensordot(self.U.T, R-o, 1)/h
 		else:
 			return Field(indices(self.shape), self)
+		
+	def rr(self, r=None):
+		"inertia tensors about the grid origin for a unit mass at each point of r, or the grid by default.  unlear if this is useful for rank greater than three."
+		if r is None:
+			r = self.r()
+		else:
+			r = ascontiguousarray(r)
+		P = -r[newaxis,::]*r[:,newaxis,::]
+		# hack strides to address the diagonal plane of P
+		Pd = ndarray(buffer=P, dtype=P.dtype, \
+			shape=r.shape, strides=((3+1)*P.strides[1],)+ P.strides[2:])
+		Pd += (r**2).sum(0)
+		return P
 		
 	#
 	# utility
@@ -187,16 +200,6 @@ when called with no arguments, return a field of the common coordinates for each
 		
 	def __neq__(self, other):
 		return not self.__eq__(other)
-		
-	def rr(self):
-		"Return a 3*3*1*shape[1:] array of inertia tensors about the grid origin for a unit mass at each point."
-		r = self.r()[1:,0:1,::]
-		P = -r[newaxis,::]*r[:,newaxis,::]
-		# hack strides to address the diagonal plane of P
-		Pd = ndarray(buffer=P, dtype=P.dtype, \
-			shape=r.shape, strides=((3+1)*P.strides[1],)+ P.strides[2:])
-		Pd += (r**2).sum(0)
-		return P
 		
 	def S(self, ordinates):
 		# integrate: should allow axes to be picked
@@ -256,6 +259,8 @@ class Field(ndarray):
 		return self.abscissae.R()
 	def i(self):
 		return self.abscissae.i()
+	def rr(self):
+		return self.abscissae.rr()
 	
 	def S(self):
 		"should allow dimensions to be specified"
@@ -274,6 +279,7 @@ class Field(ndarray):
 		savez('fields.npz', **ftab)
 	
 	def samples(self, points):
+		assert False	# bit rot
 		return map_coordinates(self.ordinates, self.abscissae.indices_for(points.R()), cval=nan)
 
 	def support(self, cut=0):
