@@ -25,8 +25,7 @@ K -= K.min()
 
 # shift grid origin to centre of weight
 wgt = exp(-K/(2*2.88**2))
-r0 = (T.r()*wgt).S()/wgt.S()
-T = T.shifted(r0)
+T = T.shifted((wgt.r()*wgt).S()/wgt.S())
 
 # find the principal axes and
 # set U to the rotation from the trap-aligned frame to the original data frame

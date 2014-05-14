@@ -108,6 +108,10 @@ All operations on a single grid refer to that grid's coordinates.
 			return self.r(i=self.i())
 		
 	def R(self, i=None, r=None):
+		"""convert indices or grid coordinates to common coordinates.
+
+when called with no arguments, return a field of the common coordinates for each grid point.  otherwise, return the common coordinates of the points with indices i or grid coordinates r: the first dimension is coordinate components.
+"""
 		assert i is None or r is None
 		if i is not None:
 			i = array(i)
@@ -236,10 +240,31 @@ class Field(ndarray):
 		if self.abscissae:
 			assert self.shape[-self.abscissae.rank():] == self.abscissae.shape
 			
+	def __str__(self):
+		return '<You lose>'
+		
+	def __repr__(self):
+		return '<You lose>'
+	
+	#
+	# methods delegated to abscissae
+	#
+	
+	def r(self):
+		return self.abscissae.r()
+	def R(self):
+		return self.abscissae.R()
+	def i(self):
+		return self.abscissae.i()
+	
 	def S(self):
 		"should allow dimensions to be specified"
 		return self.abscissae.S(self)
-		
+	
+	#
+	# loading and saving
+	#
+	
 	def save(self, label=None):
 		if label:
 			self._label = label
