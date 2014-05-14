@@ -8,6 +8,11 @@ from scipy.ndimage.interpolation import map_coordinates
 # TODO extrapolation inserts nans, support counts nans as zero
 # Field as a subclass of ndarray
 
+# Glossary
+#
+# grid: a set of grid coordinates
+# points: a set of common coordinates
+
 _albls = ['_s', '_x', '_y', '_z']
 
 class Grid:
@@ -31,6 +36,7 @@ All operations on a single grid refer to that grid's coordinates.
 		
 	@classmethod
 	def from_axes(cls, *axes):
+		# FIXME assert result.axes() are close to axes
 		axes = [array(q).flatten() for q in axes]
 		N = array([q.size for q in axes])
 		origin = [q[0] for q in axes]
@@ -194,21 +200,44 @@ when called with no arguments, return a field of the common coordinates for each
 	def blank(self):
 		return empty(self.shape)
 		
+	#
+	# comparision
+	#
+		
 	def __eq__(self, other):
-		assert False
-		return all([(q == p).all() for q, p in zip(self.axes, other.axes)])
+		assert False	# comparing floats for equality is a sin
 		
 	def __neq__(self, other):
 		return not self.__eq__(other)
+		
+	def close_points(self, other):
+		"test if the points of self and other have similar common coordinates"
+		return self.shape == other.shape and \
+			all([allclose(getattr(self, x), getattr(other, x))
+				for x in ['h', 'o', 'U']])
+	
+	def close_grid(self, other):
+		"test if the points of self and other have similar grid coordinates"
+		return self.shape == other.shape and \
+			all([allclose(getattr(self, x), getattr(other, x))
+				for x in ['h', 'p']])
+		
+	def close(self, other):
+		return self.close_points(other) and self.close_grid(other)
+		
+	#
+	# Fourierology
+	#
+		
+	#
+	# integration
+	#
 		
 	def S(self, ordinates):
 		# integrate: should allow axes to be picked
 		# the method ndarray.sum returns an ndarray, not a Field,
 		# so this doesn't trigger shape checks.
 		return prod(self.h)*ordinates.sum(tuple(range(-self.rank(),0)))
-		
-	def sample(self, fld):
-		return Field(fld.samples(self), self)
 	
 	def subgrid(self, corner, shape):
 		return Grid(*[q[c:c+s] for q, c, s in zip(self.axes(), corner, shape)],
@@ -227,6 +256,8 @@ def load_field(lbl):
 	
 
 class Field(ndarray):
+	
+	# FIXME binary ufuncs should check the grids are the same
 	
 	def __new__(cls, ordinates, abscissae=Grid.default(), label=None):
 		obj = asarray(ordinates).view(cls)
@@ -278,9 +309,22 @@ class Field(ndarray):
 		ftab[self._label] = self.ordinates
 		savez('fields.npz', **ftab)
 	
-	def samples(self, points):
-		assert False	# bit rot
-		return map_coordinates(self.ordinates, self.abscissae.indices_for(points.R()), cval=nan)
+	#
+	# interpolation
+	#
+	
+	def sampled(self, abscissae):
+		# shortcut: interpolation on the same grid
+		if abscissae.close_points(self.abscissae):
+			return Field(self, abscissae)
+		# shortcut: time slicing n.y.i.
+		else:
+			assert False	# bit rot
+			return map_coordinates(self.ordinates, self.abscissae.indices_for(points.R()), cval=nan)
+	
+	#
+	# misc
+	#
 
 	def support(self, cut=0):
 		"return a subset of the sampling grid, where my values exceed cutoff"
