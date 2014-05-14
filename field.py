@@ -144,7 +144,9 @@ All operations on a single grid refer to that grid's coordinates.
 			self.p.reshape((self.rank(),)+tail), \
 			self.o.reshape((self.dim(),)+tail)
 	
+	#
 	# transformation
+	#
 	
 	def shifted(self, new_origin):
 		# index origin not changed in common coordinates,
@@ -197,8 +199,10 @@ All operations on a single grid refer to that grid's coordinates.
 		return P
 		
 	def S(self, ordinates):
-		# integrate over space
-		return prod(self.h3)*ordinates.sum((-3, -2, -1))
+		# integrate: should allow axes to be picked
+		# the method ndarray.sum returns an ndarray, not a Field,
+		# so this doesn't trigger shape checks.
+		return prod(self.h)*ordinates.sum(tuple(range(-self.rank(),0)))
 		
 	def sample(self, fld):
 		return Field(fld.samples(self), self)
@@ -224,7 +228,7 @@ class Field(ndarray):
 	def __new__(cls, ordinates, abscissae=Grid.default(), label=None):
 		obj = asarray(ordinates).view(cls)
 		obj.abscissae = abscissae
-		assert obj.shape == obj.abscissae.shape
+		assert obj.shape[-obj.abscissae.rank():] == obj.abscissae.shape
 		if label is not None:
 			obj.label = label
 		return obj
@@ -234,7 +238,11 @@ class Field(ndarray):
 		self.abscissae = getattr(obj, 'abscissae', None)
 		# catch reductions
 		if self.abscissae:
-			assert self.shape == self.abscissae.shape
+			assert self.shape[-self.abscissae.rank():] == self.abscissae.shape
+			
+	def S(self):
+		"should allow dimensions to be specified"
+		return self.abscissae.S(self)
 		
 	def save(self, label=None):
 		if label:

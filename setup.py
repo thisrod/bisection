@@ -20,12 +20,12 @@ vfile = loadmat('potentials/RWA_X_3D_0.mat')
 T = Grid.from_axes(*[10*vfile[q] for q in ['x', 'y', 'z']])
 
 # load final potential, shift to avoid underflow
-K = 0.1719*loadmat('potentials/RWA_X_3D_17.mat')['v']
+K = Field(0.1719*loadmat('potentials/RWA_X_3D_17.mat')['v'], T)
 K -= K.min()
 
 # shift grid origin to centre of weight
 wgt = exp(-K/(2*2.88**2))
-r0 = T.S(T.r()*wgt)/T.S(wgt)
+r0 = (T.r()*wgt).S()/wgt.S()
 T = T.shifted(r0)
 
 # find the principal axes and
