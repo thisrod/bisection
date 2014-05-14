@@ -105,12 +105,10 @@ All operations on a single grid refer to that grid's coordinates.
 			h, p, o = self._vectors(R)
 			return p + tensordot(self.U.T, R-o, 1)		
 		else:
-			return array(meshgrid(*self.axes(), indexing='ij'))
+			return self.r(i=self.i())
 		
 	def R(self, i=None, r=None):
 		assert i is None or r is None
-		if i is None and r is None:
-			i = indices(self.shape)
 		if i is not None:
 			i = array(i)
 			h, p, o = self._vectors(i)
@@ -118,7 +116,9 @@ All operations on a single grid refer to that grid's coordinates.
 		if r is not None:
 			r = array(r)
 			h, p, o = self._vectors(r)
-			return o + tensordot(self.U, r-p, 1)	
+			return o + tensordot(self.U, r-p, 1)
+		else:
+			return self.R(i=self.i())
 		
 	def i(self, r=None, R=None):
 		assert r is None or R is None
@@ -131,7 +131,7 @@ All operations on a single grid refer to that grid's coordinates.
 			h, p, o = self._vectors(R)
 			return tensordot(self.U.T, R-o, 1)/h
 		else:
-			return indices(self.shape)
+			return Field(indices(self.shape), self)
 		
 	#
 	# utility
