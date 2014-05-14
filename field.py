@@ -178,8 +178,21 @@ when called with no arguments, return a field of the common coordinates for each
 	#
 	
 	def __getitem__(self, subidx):
-		"for now, we only handle slices.  could have integers return a lower rank grid"
-		assert False	# n.y.i.
+		"for now, we only handle slices.  could have integers return a lower rank grid."
+		def bound(i, n, m):
+			if i is None:
+				i = m
+			if i<0:
+				i += n
+			assert 0 <= i and i <= n
+			return i
+			
+		assert all([type(x) is slice and x.step is None for x in subidx])
+		lowcorner = array([bound(x.start, n, 0) for x, n in zip(subidx, self.shape)])
+		highcorner = array([bound(x.stop, n, n) for x, n in zip(subidx, self.shape)])
+		return self._clone(shape=highcorner - lowcorner,
+			p = self.p + self.h*lowcorner,
+			o = self.o + self.h*lowcorner)
 	
 	def shifted(self, new_origin):
 		"translate grid coordinates, while leaving the grid fixed in common coordinates"
@@ -212,7 +225,7 @@ when called with no arguments, return a field of the common coordinates for each
 	#
 		
 	def __eq__(self, other):
-		assert False	# comparing floats for equality is a sin
+		assert False	# testing floats for equality is a sin
 		
 	def __neq__(self, other):
 		return not self.__eq__(other)
@@ -245,10 +258,6 @@ when called with no arguments, return a field of the common coordinates for each
 		# the method ndarray.sum returns an ndarray, not a Field,
 		# so this doesn't trigger shape checks.
 		return prod(self.h)*ordinates.sum(tuple(range(-self.rank(),0)))
-	
-	def subgrid(self, corner, shape):
-		return Grid(*[q[c:c+s] for q, c, s in zip(self.axes(), corner, shape)],
-			orientation=self.U3, origin=self.origin())
 		
 		
 	

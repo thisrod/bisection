@@ -42,11 +42,8 @@ wgt += exp(-K/(2*2.35**2))
 
 # truncate S to bounds of atoms in initial and final potentials
 S = wgt.sampled(S).support(cut=exp(-Kcut/(2*2.5**2)))
-# trim one point from each end of z axis to avoid extrapolation
-ez = array([0,0,0,1])
-S = S.subgrid(ez, array(S.shape)-2*ez)
-Ts = Grid(s, *T.axes()[1:], orientation=T.U3, origin=T.origin())
-Ss = Grid(s, *S.axes()[1:], orientation=S.U3, origin=S.origin())
+# trim z axis to avoid extrapolation
+S = S[:,:,1:-1]
 
 # load and rotate potentials
 V = Ts.blank()

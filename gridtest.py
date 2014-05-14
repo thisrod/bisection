@@ -23,3 +23,9 @@ assert allclose(e, R.R(i=R.i(R=e)))
 U = array([[cos(pi/6), -sin(pi/6), 0], [sin(pi/6), cos(pi/6), 0], [0, 0, 1]])
 origin = R.R(r=(0,0,0)).reshape((3,1,1,1))
 assert allclose(R.rotated(U).R() - origin, tensordot(U, R.R() - origin, 1))
+
+# test subgrids
+Rs = R[0:2, 1:2, 1:3]
+assert allclose(Rs.r(), array(R.r())[:, 0:2, 1:2, 1:3])
+assert allclose(Rs.R(), array(R.R())[:, 0:2, 1:2, 1:3])
+assert Rs.close(R[0:2, 1:2, 1:-2])
