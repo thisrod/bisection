@@ -149,12 +149,8 @@ All operations on a single grid refer to that grid's coordinates.
 	#
 	
 	def shifted(self, new_origin):
-		# index origin not changed in common coordinates,
-		# moved by -new_origin in grid coordinates.
-		S = copy(self)
-		new_origin = concatenate(([0], new_origin))
-		S._configure(p=self.p - new_origin)
-		return S
+		"translate grid coordinates, while leaving the grid fixed in common coordinates"
+		return Grid(p=self.p-new_origin, o=self.o, h=self.h, shape=self.shape, U=self.U)
 		
 	def translated(self, dr):
 		"Shift the grid points, instead of the coordinates"
