@@ -326,8 +326,9 @@ class Field(ndarray):
 			return Field(self, abscissae)
 		# shortcut: time slicing n.y.i.
 		else:
-			assert False	# bit rot
-			return map_coordinates(self.ordinates, self.abscissae.indices_for(points.R()), cval=nan)
+			return Field(
+				map_coordinates(self, self.abscissae.i(R=abscissae.R()), cval=nan),
+				abscissae)
 	
 	#
 	# misc
@@ -335,7 +336,9 @@ class Field(ndarray):
 
 	def support(self, cut=0):
 		"return a subgrid of abscissae, on which ordinates exceed cutoff"
-		bools = array(nonzero(array(self)>cut))
+		A = array(self)
+		A[isnan(A)] = -inf
+		bools = array(nonzero(A>cut))
 		return self.abscissae[[slice(m,n) for m, n in zip(bools.min(axis=1), bools.max(axis=1) + 1)]]
 	
 	def central_frame(self):

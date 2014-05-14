@@ -5,7 +5,7 @@
 from numpy import \
 	abs, amax, amin, all, allclose, arange, argmax, array, asarray, ascontiguousarray, \
 	ceil, concatenate, diag, diagflat, diagonal, dot, empty, eye, \
-	floor, indices, isnan, linspace, load, log, log10, logspace, \
+	floor, indices, inf, isnan, linspace, load, log, log10, logspace, \
 	logical_not, logical_or, \
 	mean, meshgrid, nan, ndarray, newaxis, nonzero, \
 	pi, prod, ptp, \
