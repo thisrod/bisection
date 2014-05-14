@@ -177,6 +177,10 @@ when called with no arguments, return a field of the common coordinates for each
 	# transformation
 	#
 	
+	def __getitem__(self, subidx):
+		"for now, we only handle slices.  could have integers return a lower rank grid"
+		assert False	# n.y.i.
+	
 	def shifted(self, new_origin):
 		"translate grid coordinates, while leaving the grid fixed in common coordinates"
 		return Grid(p=self.p-new_origin, o=self.o, h=self.h, shape=self.shape, U=self.U)
@@ -330,9 +334,9 @@ class Field(ndarray):
 	#
 
 	def support(self, cut=0):
-		"return a subset of the sampling grid, where my values exceed cutoff"
-		bools = array(nonzero(self.ordinates>cut))
-		return self.abscissae.subgrid(bools.min(axis=1), bools.ptp(axis=1) + 1)
+		"return a subgrid of abscissae, on which ordinates exceed cutoff"
+		bools = array(nonzero(array(self)>cut))
+		return self.abscissae[[slice(m,n) for m, n in zip(bools.min(axis=1), bools.max(axis=1) + 1)]]
 	
 	def central_frame(self):
 		"return a Grid with origin at my centre of mass, and axes aligned to my principle axes.  only sensible for scalar fields."

@@ -36,12 +36,12 @@ U = dot(U, diagflat(sign(diag(U))))	# align senses
 S = T.rotated(U)
 
 # load inital potential, combine weights
-K = 0.1719*loadmat('potentials/RWA_X_3D_0.mat')['v']
+K = Field(0.1719*loadmat('potentials/RWA_X_3D_0.mat')['v'], T)
 K -= K.min()
 wgt += exp(-K/(2*2.35**2))
 
 # truncate S to bounds of atoms in initial and final potentials
-S = S.sample(Field(wgt[newaxis,::], T)).support(cut=exp(-Kcut/(2*2.5**2)))
+S = wgt.sampled(S).support(cut=exp(-Kcut/(2*2.5**2)))
 # trim one point from each end of z axis to avoid extrapolation
 ez = array([0,0,0,1])
 S = S.subgrid(ez, array(S.shape)-2*ez)
