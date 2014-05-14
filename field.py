@@ -166,6 +166,12 @@ when called with no arguments, return a field of the common coordinates for each
 		return self.h.reshape((self.rank(),)+tail), \
 			self.p.reshape((self.rank(),)+tail), \
 			self.o.reshape((self.dim(),)+tail)
+			
+	def _clone(self, **args):
+		"return a Grid like self, but with some things changed"
+		d = dict([(x, getattr(self, x)) for x in ['shape', 'h', 'o', 'p', 'U']])
+		d.update(args)
+		return Grid(**d)
 	
 	#
 	# transformation
@@ -180,15 +186,12 @@ when called with no arguments, return a field of the common coordinates for each
 		assert False
 		
 	def rotated(self, V, centre=None):
-		"return grid transfomed by V about centre (centre is in grid coordinates).  unlike shifted, this returns a different set of points"
+		"return the same grid, representing points transfomed by V about centre (centre is in grid coordinates)"
 		if centre is None:
-			centre = self.origin()
-		Rc = self.o + dot(self.U, centre-self.p)
-		S = copy(self)
-		S._configure(U=V)
-		S._configure(o=Rc + dot(S.U,self.o-Rc))
-		S._configure(U=dot(V, self.U3))
-		return S
+			centre = zeros(self.rank())
+		assert V.shape == 2*(self.dim(),)
+		Rc = self.R(r=centre)
+		return self._clone(o=Rc+dot(V, self.o-Rc), U=dot(V,self.U))
 	
 	# loading and saving to file
 		
