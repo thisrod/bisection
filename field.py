@@ -127,7 +127,7 @@ if one or more indices are numbers, the result has the same dimension but reduce
 				i += n
 			assert 0 <= i and i <= n
 			return i
-		if type(subidx) is slice:
+		if type(subidx) is not tuple:
 			subidx = (subidx,)
 		assert len(subidx) == self.rank()	# numpy :: n.y.i.
 		if all([type(x) is slice for x in subidx]):
@@ -143,7 +143,7 @@ if one or more indices are numbers, the result has the same dimension but reduce
 				h = self.h[axs],
 				p = self.p[axs],
 				U = self.U[:,axs])
-			return S.__getitem__([subidx[i] for i in axs])
+			return S.__getitem__(tuple([subidx[i] for i in axs]))
 			
 	#
 	# indices and coordinates
@@ -284,10 +284,13 @@ when called with no arguments, return a field of the common coordinates for each
 	#
 	
 	def reciprocal(self):
-		"wavenumbers at which dfft is sampled"
-		assert False	# standard frequency order isn't a grid
-		return Grid.from_axes(*[fftfreq(n, ptp(l)/(n-1))
-			for n, l in zip(self.shape, self.bounds())])
+		"""wavenumbers at which dfft is sampled
+		
+the reciprocal grid size is always odd.  has same orientation as self
+"""
+		ns = array([n+(n+1)%2 for n in self.shape])
+		h=2*pi/(self.shape*self.h)
+		return Grid(shape=ns, h=h, U=self.U, p=-h*((ns-1)//2), o=zeros(self.dim()))
 		
 	#
 	# integration

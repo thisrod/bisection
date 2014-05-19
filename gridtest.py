@@ -40,5 +40,15 @@ assert R.close(R[:,0,0]*R[0,:,0]*R[0,0,:])
 # test subfields
 assert (array(f[:,0,0]) == array(f)[:,0,0]).all()
 
+# FFT tests
+assert allclose(2*pi*abs(fftfreq(x.shape[0], x.h[0])).max(),
+	x.reciprocal().r().max())
+assert allclose(2*pi*abs(fftfreq(y.shape[0], y.h[0])).max(),
+	y.reciprocal().r().max())
+assert allclose(2*pi*abs(fftfreq(z.shape[0], z.h[0])).max(),
+	z.reciprocal().r().max())
+assert allclose(R.rotated(U).reciprocal().r(), R.reciprocal().rotated(U).r())
+assert R.reciprocal().close(x.reciprocal()*y.reciprocal()*z.reciprocal())
+
 # possible bugs
 # interpolation on low-rank grids that are close but unequal
