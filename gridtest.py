@@ -30,6 +30,7 @@ assert allclose(Rs.R(), array(R.R())[:, 0:2, 1:2, 1:3])
 assert Rs.close(R[0:2, 1:2, 1:-2])
 
 # test low rank
+assert R.close(R[:,:,0]*R[0,0,:])
 assert R.close(R[:,0,0]*R[0,:,0]*R[0,0,:])
 # assert y.close(R[pi,:,exp(1)])
 

@@ -134,15 +134,15 @@ if one or more indices are numbers, the result has the same dimension but reduce
 			lowcorner = array([bound(x.start, n, 0) for x, n in zip(subidx, self.shape)])
 			highcorner = array([bound(x.stop, n, n) for x, n in zip(subidx, self.shape)])
 			return self._clone(shape=highcorner - lowcorner,
-				p = self.p + self.h*lowcorner,
-				o = self.o + self.h*lowcorner)
+				p = self.r(i=lowcorner),
+				o = self.R(i=lowcorner))
 		else:
 			axs = [i for i in range(self.rank()) if type(subidx[i]) is slice]
 			S = self._clone(shape=[self.shape[i] for i in axs],
 				h = self.h[axs],
 				p = self.p[axs],
 				U = self.U[:,axs])
-			return S.__getitem__(*[subidx[i] for i in axs])
+			return S.__getitem__([subidx[i] for i in axs])
 			
 	#
 	# indices and coordinates
@@ -338,6 +338,10 @@ class Field(ndarray):
 		
 	def __repr__(self):
 		return '<You lose>'
+
+	def __getitems__(self, ixs):
+		return Field(array(self).__getitems__(ixs),
+			self.abscissae.__getitems__(ixs))
 	
 	#
 	# methods delegated to abscissae
