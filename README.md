@@ -5,7 +5,7 @@ by Rodney E. S. Polkinghorne
 
 A field is a scalar, vector or tensor that depends on position and time.  The `Field` exported by this Python library is an `ndarray` containing samples of a field, that also records the points in R<sup>n</sup> at which the samples were taken.  Such an array can integrate, differentiate and Fourier transform itself, generate samples of white noise at its points, and so on.  The library aims to remove the accidental complexity from computing with fields, in order to spare scientific programers from bookeeping, to prevent large classes of bugs from occuring at all, and to allow the remaining code to address physical problems, and the remaining bugs to be removed by physical nous.
 
-The mechanics of this are done by a class `Grid`.  This is a abstract representation of a rectangular grid of points in R<sup>n</sup>, along with a system of grid coordinates.  The points must form a rectangular grid, but this does not have to be aligned with the usual axes, start at the origin, or have rank n.  We can represent a skew plane in space, and things like that.
+The mechanics of this are done by a class `Grid`.  This is a abstract representation of a rectangular grid of points in R<sup>n</sup>, along with a system of grid coordinates.  The points must form a rectangular grid, but this does not have to be aligned with the usual axes or start at the origin.  We can represent a skew plane in space, and things like that.
 
 At `Grid` is constructed from its axes, as
 
@@ -77,9 +77,33 @@ The method `i` calculates indices from coordinates
 
 These methods return a `Field` if called with no arguments or with a `Field`, and an `ndarray` if passed an `ndarray`.
 
-Convention on shape 1 grids vs low rank grids
+
+Spectral methods
+---
+
+If `f` is a field on a grid `S`, then `f.fft()` returns a field on the grid `S.reciprocal()`.  Let's first consider the rank 1 case, with grid `x` with length n and step h.  The reciprocal grid represents wavenumbers, and has step 2&pi;/nh.  If n is odd, the reciprocal grid also has length n, and represents wavenumbers from ? to ?.  In this case, `f.fft()` comprises the usual DFT coefficients, reordered to lie on a grid.  If n is even, the grid has length n+1; the usual DFT coefficient with the largest modulus wavenumber is split equally between the two extreme points of the grid.  The transform is scaled to obey Rayleigh's theorem when the integrals are discretised by the trapezoid rule.
+
+In the higher rank case, the reciprocal grid is aligned with the original grid.  In both cases, the constant term of the fourier series lies at w=W=0.
+
+
+Low rank grids
+---
+
+We said at the start that a `Grid` need not be aligned with the usual axes, or start at the origin.  There is a further generalisation: the dimension of a `Grid` may exceed its rank.  For example, a rank 2 grid might have points lying in R<sup>3</sup>, on the plane x+y+z=1.  This is the most general case.
+
+
 
 Efficiency goals
 ---
 
 The intent is that `Grid` operations should be done once, when problems are set up, whereas `Field` operations might be called in inner loops.  Therefore, only `Field` is optimised for speed: `Grid` is optimised for maintainability and numerical correctness.  The exception is trivial grid operations, where the grids involved represent the same points.  These should be shortcut, so that users can reason in terms of equality and ignore identity.
+
+
+History and motivation
+---
+
+This library was inspired by XMDS by Greg Collecutt.  With a decade of hindsight, I think it is clear that part of this system is very helpful to users, but other parts aren't flexible enough for general use, and are too complicated for general users to extend.  I've tried to copy the former and omit the latter.  Once this library is imported into Python, I hope that the rest will be fairly straightforward to implement.
+
+Many details were inspired by the books of Nick L. Trefethen, the clarity of whose thoughts and programs I greatly admire.
+
+The names of the methods `w` and `W` are intended to suggest a coordinate or a frequency, but be ambigous between the two.
