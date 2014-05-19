@@ -128,7 +128,8 @@ if one or more indices are numbers, the result has the same dimension but reduce
 			assert 0 <= i and i <= n
 			return i
 		if type(subidx) is slice:
-			subidx = (subidx,)			
+			subidx = (subidx,)
+		assert len(subidx) == self.rank()	# numpy :: n.y.i.
 		if all([type(x) is slice for x in subidx]):
 			assert all([x.step is None for x in subidx])
 			lowcorner = array([bound(x.start, n, 0) for x, n in zip(subidx, self.shape)])
@@ -199,12 +200,15 @@ when called with no arguments, return a field of the common coordinates for each
 			r = self.r()
 		else:
 			r = ascontiguousarray(r)
-		P = -r[newaxis,::]*r[:,newaxis,::]
+		P = -array(r)[newaxis,::]*array(r)[:,newaxis,::]
 		# hack strides to address the diagonal plane of P
 		Pd = ndarray(buffer=P, dtype=P.dtype, \
 			shape=r.shape, strides=((3+1)*P.strides[1],)+ P.strides[2:])
 		Pd += (r**2).sum(0)
-		return P
+		if type(r) is Field:
+			return Field(P, r.abscissae)
+		else:
+			return P
 		
 	#
 	# utility
@@ -339,9 +343,12 @@ class Field(ndarray):
 	def __repr__(self):
 		return '<You lose>'
 
-	def __getitems__(self, ixs):
-		return Field(array(self).__getitems__(ixs),
-			self.abscissae.__getitems__(ixs))
+	def __getitem__(self, ixs):
+		if any([type(i) is slice for i in ixs]):
+			return Field(self.view(ndarray).__getitem__(ixs),
+				self.abscissae.__getitem__(ixs))
+		else:
+			return(self.view(ndarray).__getitem__(ixs))
 	
 	#
 	# methods delegated to abscissae

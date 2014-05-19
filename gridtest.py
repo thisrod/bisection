@@ -4,7 +4,10 @@ x, y, z, s = [Grid.from_axes(q) for q in
 	[arange(2), 0.3*arange(3), pi+arange(5), [0, 17]]]
 R = x*y*z
 T = s*R
-f = Field(R.blank(), R);  f[::] = 1
+f = Field(R.blank(), R);  f[:,:,:] = 1
+
+# check assignment worked
+assert f[0,0,0] == 1
 
 # check index and coordinate functions
 
@@ -33,6 +36,9 @@ assert Rs.close(R[0:2, 1:2, 1:-2])
 assert R.close(R[:,:,0]*R[0,0,:])
 assert R.close(R[:,0,0]*R[0,:,0]*R[0,0,:])
 # assert y.close(R[pi,:,exp(1)])
+
+# test subfields
+assert (array(f[:,0,0]) == array(f)[:,0,0]).all()
 
 # possible bugs
 # interpolation on low-rank grids that are close but unequal
