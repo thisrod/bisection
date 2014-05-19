@@ -3,7 +3,6 @@ from field import *
 x, y, z, s = [Grid.from_axes(q) for q in
 	[arange(2), 0.3*arange(3), pi+arange(5), [0, 17]]]
 R = x*y*z
-s = Grid.from_axes()
 T = s*R
 f = Field(R.blank(), R);  f[::] = 1
 
@@ -29,3 +28,10 @@ Rs = R[0:2, 1:2, 1:3]
 assert allclose(Rs.r(), array(R.r())[:, 0:2, 1:2, 1:3])
 assert allclose(Rs.R(), array(R.R())[:, 0:2, 1:2, 1:3])
 assert Rs.close(R[0:2, 1:2, 1:-2])
+
+# test low rank
+assert R.close(R[:,0,0]*R[0,:,0]*R[0,0,:])
+# assert y.close(R[pi,:,exp(1)])
+
+# possible bugs
+# interpolation on low-rank grids that are close but unequal

@@ -63,18 +63,65 @@ All operations on a single grid refer to that grid's coordinates.
 		assert (self.h>0).all()
 		self.p = array(p, dtype=float).reshape((self.rank(),))
 		self.o = array(o, dtype=float).reshape((self.dim(),))
+
+	#
+	# projection and cartesian products
+	#
 			
 	def __mul__(self, other):
-		"cartesian product of grids on cartesian product of common coordinates"
-		U = zeros((self.dim()+other.dim(), self.rank()+other.rank()))
-		U[:self.dim(),:self.rank()] = self.U
-		U[self.dim():,self.rank():] = other.U
-		return Grid(
-			shape = self.shape + other.shape,
-			o = concatenate((self.o, other.o)),
-			p = concatenate((self.p, other.p)),
-			h = concatenate((self.h, other.h)),
-			U = U)
+		"""cartesian product
+		
+the grid space of the result is always the cartesian product of the factor grids.  the common coordinates are more complex.  if the factors have the same dimension, and their axes are all numerically orthogonal, the result has the same common space, and the same orientation.  the grid origin of the result projects on each factor's origin, orthogonally to that factor's axes.
+
+otherwise, the common space is the cartesian product of those of the factors, and the axes lie in distinct subspaces.
+"""
+		shape = self.shape + other.shape
+		h = concatenate((self.h, other.h))
+		p = concatenate((self.p, other.p))
+		if self.dim() == other.dim() and \
+			allclose(dot(self.U.T, other.U), zeros((self.rank(), other.rank()))):
+			return Grid(shape=shape, h=h, p=p,
+				o = dot(self.U, dot(self.U.T, self.o)) + \
+					dot(other.U, dot(other.U.T, other.o)),
+				U = concatenate((self.U, other.U), axis=1))
+		else:
+			U = zeros((self.dim()+other.dim(), self.rank()+other.rank()))
+			U[:self.dim(),:self.rank()] = self.U
+			U[self.dim():,self.rank():] = other.U
+			return Grid(shape=shape, h=h, p=p,
+				o=concatenate((self.o, other.o)),
+				U=U)
+				
+	def __getitem__(self, subidx):
+		"""return a subgrid of self.
+		
+if all indices are slices, the result has the same rank as self, and everything is obvious.  if the indices aren't integers, the integers that lie in the slice are used.  this might give a null grid, if there are no such integers.
+
+if one or more indices are numbers, the result has the same dimension but reduced rank.  the rules about orthogonal projection, and about arbitrariness in the origin of a reduced-rank grid, mean that the actual numbers supplied have no effect for the purposes of this library.  they are recorded in the grid origin of the result anyway, but this might change if it makes grid compatibility easier to test for.
+"""
+		def bound(i, n, m):
+			if i is None:
+				i = m
+			if i<0:
+				i += n
+			assert 0 <= i and i <= n
+			return i
+		if type(subidx) is slice:
+			subidx = (subidx,)			
+		if all([type(x) is slice for x in subidx]):
+			assert all([x.step is None for x in subidx])
+			lowcorner = array([bound(x.start, n, 0) for x, n in zip(subidx, self.shape)])
+			highcorner = array([bound(x.stop, n, n) for x, n in zip(subidx, self.shape)])
+			return self._clone(shape=highcorner - lowcorner,
+				p = self.p + self.h*lowcorner,
+				o = self.o + self.h*lowcorner)
+		else:
+			axs = [i for i in range(self.rank()) if type(subidx[i]) is slice]
+			S = self._clone(shape=[self.shape[i] for i in axs],
+				h = self.h[axs],
+				p = self.p[axs],
+				U = self.U[:,axs])
+			return S.__getitem__(*[subidx[i] for i in axs])
 	
 	#
 	# basic properties
@@ -93,6 +140,9 @@ All operations on a single grid refer to that grid's coordinates.
 		
 	def bounds(self):
 		return array([[q.min(), q.max()] for q in self.axes()])
+
+	def __len__(self):
+		return prod(self.shape)
 			
 	#
 	# indices and coordinates
@@ -177,23 +227,6 @@ when called with no arguments, return a field of the common coordinates for each
 	# transformation
 	#
 	
-	def __getitem__(self, subidx):
-		"for now, we only handle slices.  could have integers return a lower rank grid."
-		def bound(i, n, m):
-			if i is None:
-				i = m
-			if i<0:
-				i += n
-			assert 0 <= i and i <= n
-			return i
-			
-		assert all([type(x) is slice and x.step is None for x in subidx])
-		lowcorner = array([bound(x.start, n, 0) for x, n in zip(subidx, self.shape)])
-		highcorner = array([bound(x.stop, n, n) for x, n in zip(subidx, self.shape)])
-		return self._clone(shape=highcorner - lowcorner,
-			p = self.p + self.h*lowcorner,
-			o = self.o + self.h*lowcorner)
-	
 	def shifted(self, new_origin):
 		"translate grid coordinates, while leaving the grid fixed in common coordinates"
 		return Grid(p=self.p-new_origin, o=self.o, h=self.h, shape=self.shape, U=self.U)
@@ -216,9 +249,6 @@ when called with no arguments, return a field of the common coordinates for each
 		ftab = dict(load('fields.npz'))
 		ftab.update(dict(zip(_albls, self.axes)))
 		savez('fields.npz', **ftab)
-		
-	def blank(self):
-		return empty(self.shape)
 		
 	#
 	# comparision
@@ -248,6 +278,12 @@ when called with no arguments, return a field of the common coordinates for each
 	#
 	# Fourierology
 	#
+	
+	def reciprocal(self):
+		"wavenumbers at which dfft is sampled"
+		assert False	# standard frequency order isn't a grid
+		return Grid.from_axes(*[fftfreq(n, ptp(l)/(n-1))
+			for n, l in zip(self.shape, self.bounds())])
 		
 	#
 	# integration
@@ -258,6 +294,13 @@ when called with no arguments, return a field of the common coordinates for each
 		# the method ndarray.sum returns an ndarray, not a Field,
 		# so this doesn't trigger shape checks.
 		return prod(self.h)*ordinates.sum(tuple(range(-self.rank(),0)))
+		
+	#
+	# misc
+	#
+		
+	def blank(self):
+		return Field(empty(self.shape), self)
 		
 		
 	

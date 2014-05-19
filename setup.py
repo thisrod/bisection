@@ -13,6 +13,7 @@ from scipy.io import loadmat
 
 Kcut = 10		# potential at which to truncate grid V
 N = 7e3		# number of atoms
+l = 2e-1		# timestep for imag. time integration
 s = Grid.from_axes(1e-3*arange(18)/1.368e-5)	# times samples supplied
 
 # load supplied grid
@@ -46,9 +47,19 @@ S = wgt.sampled(S).support(cut=exp(-Kcut/(2*2.5**2)))
 S = S[:,:,1:-1]
 
 # load and rotate potentials
-V = Ts.blank()
-for i in range(s.size):
+# workaround: field slices n.y.i., cast to ndarray
+K = array((s*T).blank())
+for i in range(len(s)):
 	vfile = loadmat('potentials/RWA_X_3D_' + str(i) + '.mat')
-	V[i,:,:,:] = vfile['v']
-K = Ss.sample(Field(0.1719*V,Ts))
-assert not isnan(K.ordinates).any()
+	K[i,:,:,:] = vfile['v']
+K = Field(K, s*T)
+K = 0.1719*K.sampled(s*S)
+assert not isnan(K).any()
+
+# Set up to find ground states
+def kspace(q):
+	return 2*pi*fftfreq(q.size, ptp(q)/(q.size-1))
+kx, ky, kz = meshgrid(kspace(x), kspace(y), kspace(z), indexing='ij')
+dvec = exp(-l*(kx**2+ky**2+kz**2))
+def D(q):	return ifftn(dvec*fftn(q))
+def N(q):	return -l*((JJ[0,:,:,:]+1.330*abs(q)**2-E)*q)
