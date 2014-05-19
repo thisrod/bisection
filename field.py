@@ -63,6 +63,27 @@ All operations on a single grid refer to that grid's coordinates.
 		assert (self.h>0).all()
 		self.p = array(p, dtype=float).reshape((self.rank(),))
 		self.o = array(o, dtype=float).reshape((self.dim(),))
+	
+	#
+	# basic properties
+	#
+	
+	def rank(self):
+		"return the rank of arrays of samples"
+		return self.U.shape[1]
+		
+	def dim(self):
+		"return the dimension of the common coordinate space"
+		return self.U.shape[0]
+		
+	def axes(self):
+		return [p+h*arange(n) for p, h, n in zip(self.p, self.h, self.shape)]
+		
+	def bounds(self):
+		return array([[q.min(), q.max()] for q in self.axes()])
+
+	def __len__(self):
+		return prod(self.shape)
 
 	#
 	# projection and cartesian products
@@ -122,27 +143,6 @@ if one or more indices are numbers, the result has the same dimension but reduce
 				p = self.p[axs],
 				U = self.U[:,axs])
 			return S.__getitem__(*[subidx[i] for i in axs])
-	
-	#
-	# basic properties
-	#
-	
-	def rank(self):
-		"return the rank of arrays of samples"
-		return self.U.shape[1]
-		
-	def dim(self):
-		"return the dimension of the common coordinate space"
-		return self.U.shape[0]
-		
-	def axes(self):
-		return [p+h*arange(n) for p, h, n in zip(self.p, self.h, self.shape)]
-		
-	def bounds(self):
-		return array([[q.min(), q.max()] for q in self.axes()])
-
-	def __len__(self):
-		return prod(self.shape)
 			
 	#
 	# indices and coordinates
