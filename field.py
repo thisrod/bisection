@@ -150,6 +150,17 @@ if one or more indices are numbers, the result has the same dimension but reduce
 	# these assume the first axis of the coordinate arrays is the components
 	# if we don't have full rank, project othogonally
 	#
+
+	# renamed methods
+	
+	def w(self, i=None, W=None):
+		return self.r(i=i, R=W)
+		
+	def W(self, i=None, w=None):
+		return self.R(i=i, r=w)
+		
+	def ww(self, w=None):
+		return self.rr(r=w)
 		
 	def r(self, i=None, R=None):
 		assert i is None or R is None
@@ -181,7 +192,11 @@ when called with no arguments, return a field of the common coordinates for each
 		else:
 			return Field(self.R(i=self.i()), self)
 		
-	def i(self, r=None, R=None):
+	def i(self, r=None, R=None, w=None, W=None):
+		if r is None:
+			r = w
+		if R is None:
+			R = W
 		assert r is None or R is None
 		if r is not None:
 			r = array(r)
@@ -366,6 +381,15 @@ class Field(ndarray):
 	def rr(self):
 		return self.abscissae.rr()
 	
+	def w(self):
+		return self.abscissae.w()
+	def W(self):
+		return self.abscissae.W()
+	def i(self):
+		return self.abscissae.i()
+	def ww(self):
+		return self.abscissae.ww()
+	
 	def S(self):
 		"should allow dimensions to be specified"
 		return self.abscissae.S(self)
@@ -405,7 +429,7 @@ class Field(ndarray):
 		A = array(self)
 		A[isnan(A)] = -inf
 		bools = array(nonzero(A>cut))
-		return self.abscissae[[slice(m,n) for m, n in zip(bools.min(axis=1), bools.max(axis=1) + 1)]]
+		return self.abscissae[tuple(slice(m,n) for m, n in zip(bools.min(axis=1), bools.max(axis=1) + 1))]
 	
 	def central_frame(self):
 		"return a Grid with origin at my centre of mass, and axes aligned to my principle axes.  only sensible for scalar fields."

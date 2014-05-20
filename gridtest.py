@@ -12,24 +12,24 @@ assert f[0,0,0] == 1
 # check index and coordinate functions
 
 e = array([[1,1,1],[1,3,2]]).T
-assert all(type(x) is Field for x in [f.i(), f.r(), f.R(), f.rr()])
-assert all(type(x) is ndarray for x in [R.i(r=e), R.r(i=e), R.R(i=3), R.rr(r=e)])
-assert allclose(R.r(), R.r(i=indices(R.shape)))
-assert allclose(R.r(R=e), e)
+assert all(type(x) is Field for x in [f.i(), f.w(), f.W(), f.ww()])
+assert all(type(x) is ndarray for x in [R.i(w=e), R.w(i=e), R.W(i=3), R.ww(w=e)])
+assert allclose(R.w(), R.w(i=indices(R.shape)))
+assert allclose(R.w(W=e), e)
 
-assert allclose(e, R.i(R=R.R(i=e)))
-assert allclose(e, R.R(i=R.i(R=e)))
+assert allclose(e, R.i(W=R.W(i=e)))
+assert allclose(e, R.W(i=R.i(W=e)))
 # fill the round-trip tests out
 
 # test rotation
 U = array([[cos(pi/6), -sin(pi/6), 0], [sin(pi/6), cos(pi/6), 0], [0, 0, 1]])
-origin = R.R(r=(0,0,0)).reshape((3,1,1,1))
-assert allclose(R.rotated(U).R() - origin, tensordot(U, R.R() - origin, 1))
+origin = R.W(w=(0,0,0)).reshape((3,1,1,1))
+assert allclose(R.rotated(U).W() - origin, tensordot(U, R.W() - origin, 1))
 
 # test subgrids
 Rs = R[0:2, 1:2, 1:3]
-assert allclose(Rs.r(), array(R.r())[:, 0:2, 1:2, 1:3])
-assert allclose(Rs.R(), array(R.R())[:, 0:2, 1:2, 1:3])
+assert allclose(Rs.w(), array(R.w())[:, 0:2, 1:2, 1:3])
+assert allclose(Rs.W(), array(R.W())[:, 0:2, 1:2, 1:3])
 assert Rs.close(R[0:2, 1:2, 1:-2])
 
 # test low rank
@@ -42,13 +42,16 @@ assert (array(f[:,0,0]) == array(f)[:,0,0]).all()
 
 # FFT tests
 assert allclose(2*pi*abs(fftfreq(x.shape[0], x.h[0])).max(),
-	x.reciprocal().r().max())
+	x.reciprocal().w().max())
 assert allclose(2*pi*abs(fftfreq(y.shape[0], y.h[0])).max(),
-	y.reciprocal().r().max())
+	y.reciprocal().w().max())
 assert allclose(2*pi*abs(fftfreq(z.shape[0], z.h[0])).max(),
-	z.reciprocal().r().max())
-assert allclose(R.rotated(U).reciprocal().r(), R.reciprocal().rotated(U).r())
+	z.reciprocal().w().max())
+assert allclose(R.rotated(U).reciprocal().w(), R.reciprocal().rotated(U).w())
 assert R.reciprocal().close(x.reciprocal()*y.reciprocal()*z.reciprocal())
+
+# support
+assert f.support().close(f.abscissae)
 
 # possible bugs
 # interpolation on low-rank grids that are close but unequal
