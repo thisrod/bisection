@@ -6,6 +6,7 @@ The trap-aligned frame is defined by the centre of mass and principle axes of th
 
 from field import *
 from scipy.io import loadmat
+import sys
 
 # everything is in dispersion units, 10^-7 m
 # T is the grid supplied by Vienna, shifted to the centre of mass
@@ -54,10 +55,16 @@ for i in range(len(s)):
 K = 0.1719*K.sampled(s*S)
 assert not isnan(K).any()
 
-# Set up to find ground states
-def kspace(q):
-	return 2*pi*fftfreq(q.size, ptp(q)/(q.size-1))
-kx, ky, kz = meshgrid(kspace(x), kspace(y), kspace(z), indexing='ij')
-dvec = exp(-l*(kx**2+ky**2+kz**2))
-def D(q):	return ifftn(dvec*fftn(q))
-def N(q):	return -l*((JJ[0,:,:,:]+1.330*abs(q)**2-E)*q)
+# find ground states
+q = (s*S).blank()
+for j in range(1):
+	w = 1+0*K[j,:,:,:]; w *= sqrt(N/(w**2).S())
+	print('\nSplit step')
+	for i in range(100):
+		print('#', end='')
+		sys.stdout.flush()
+		w = w.expdsq(-l)
+		w *= exp(-l*(K[j,:,:,:]+1.330*abs(w)**2))
+		w *= sqrt(N/(w**2).S())
+	print()
+	q[j,:,:,:] = w
