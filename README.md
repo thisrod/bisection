@@ -81,9 +81,13 @@ These methods return a `Field` if called with no arguments or with a `Field`, an
 Spectral methods
 ---
 
-If `f` is a field on a grid `S`, then `f.fft()` returns a field on the grid `S.reciprocal()`.  Let's first consider the rank 1 case, with grid `x` with length n and step h.  The reciprocal grid represents wavenumbers, and has step 2&pi;/nh.  If n is odd, the reciprocal grid also has length n, and represents wavenumbers from ? to ?.  In this case, `f.fft()` comprises the usual DFT coefficients, reordered to lie on a grid.  If n is even, the grid has length n+1; the usual DFT coefficient with the largest modulus wavenumber is split equally between the two extreme points of the grid.  The transform is scaled to obey Rayleigh's theorem when the integrals are discretised by the trapezoid rule.
+Fourier transforms are complicated, and I haven't worked out all the details yet.
 
-In the higher rank case, the reciprocal grid is aligned with the original grid.  In both cases, the constant term of the fourier series lies at w=W=0.
+0. Are the original and the transform one `Field`, or two?
+
+2. How should even-sized grids be handled?  Should the reciprocal grid always be odd, with the last term possibly split between +f and -f, so that real fields are interpolated with real functions?
+
+1. How does the FT of a field remember the original grid, so that the inverse transform can translate back to the right place?  If even grids have odd shaped transforms, how does the inverse transform remember the shape of the original field?
 
 
 Low rank grids

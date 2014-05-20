@@ -8,11 +8,11 @@ from numpy import \
 	floor, indices, inf, isnan, linspace, load, log, log10, logspace, \
 	logical_not, logical_or, \
 	mean, meshgrid, nan, ndarray, newaxis, nonzero, \
-	pi, prod, ptp, \
+	ones, pi, prod, ptp, \
 	sign, sqrt, zeros, \
 	exp, sin, cos, tan, tensordot
 from numpy.random import rand, randn, seed
-from numpy.fft import fft, ifft, fftn, ifftn, fftfreq
+from numpy.fft import fft, ifft, fftn, ifftn, fftfreq, fftshift
 from numpy.linalg import eig, norm, qr
 
 # work around Pyenv breaking the OSX backend for Matplotlib

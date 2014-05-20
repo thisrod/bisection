@@ -50,6 +50,12 @@ assert allclose(2*pi*abs(fftfreq(z.shape[0], z.h[0])).max(),
 assert allclose(R.rotated(U).reciprocal().w(), R.reciprocal().rotated(U).w())
 assert R.reciprocal().close(x.reciprocal()*y.reciprocal()*z.reciprocal())
 
+g = Field(ones(x.shape), x)
+G = g.fft()
+
+# Rayleigh's theorem
+assert allclose((g**2).S(), (G**2).S())
+
 # support
 assert f.support().close(f.abscissae)
 

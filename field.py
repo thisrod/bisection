@@ -339,10 +339,13 @@ def load_field(lbl):
 class Field(ndarray):
 	
 	# FIXME binary ufuncs should check the grids are the same
+	#
+	# coords and wvnums remember the original grid when a Field is fourier transformed.
 	
 	def __new__(cls, ordinates, abscissae=Grid.default(), label=None):
 		obj = asarray(ordinates).view(cls)
 		obj.abscissae = abscissae
+		obj.coords = None;  obj.wvnums = None
 		assert obj.shape[-obj.abscissae.rank():] == obj.abscissae.shape
 		if label is not None:
 			obj.label = label
@@ -351,6 +354,8 @@ class Field(ndarray):
 	def __array_finalize__(self, obj):
 		if obj is None: return
 		self.abscissae = getattr(obj, 'abscissae', None)
+		self.coords = getattr(obj, 'coords', None)
+		self.wvnums = getattr(obj, 'wvnums', None)
 		# catch reductions
 		if self.abscissae:
 			assert self.shape[-self.abscissae.rank():] == self.abscissae.shape
@@ -405,6 +410,30 @@ class Field(ndarray):
 		ftab = dict(load('fields.npz'))
 		ftab[self._label] = self.ordinates
 		savez('fields.npz', **ftab)
+		
+	#
+	# Fourier transforms
+	# details too hard for now
+	#
+	
+	def fft(self):
+		assert self.wvnums is None	# n.y.i.
+		ft = fftn(self.view(ndarray))
+		ft = fftshift(ft)
+		if len(ft) % 2 == 0:
+			ft = concatenate((ft[:1]/2, ft[1:], ft[:1]/2))
+		# document why this satisfies Rayleigh's theorem
+		ft /= sqrt(2*pi)
+		F = Field(ft, self.abscissae.reciprocal())
+		F.coords = self.abscissae
+		return F
+	
+	def ifft(self):
+		return Field(ifftn(self.view(ndarray)), self.abscissae.reciprocal())
+		
+	#
+	# differentiation
+	#
 	
 	#
 	# interpolation
