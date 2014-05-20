@@ -307,6 +307,13 @@ the reciprocal grid size is always odd.  has same orientation as self
 		h=2*pi/(self.shape*self.h)
 		return Grid(shape=ns, h=h, U=self.U, p=-h*((ns-1)//2), o=zeros(self.dim()))
 		
+	def kspace(self):
+		"""quick and dirty wavenumbers for q&d spectral methods"""
+		
+		return array(meshgrid(
+			*[2*pi*fftfreq(q.size, ptp(q)/(q.size-1)) for q in self.axes()],
+			indexing='ij'))
+		
 	#
 	# integration
 	#
@@ -434,6 +441,15 @@ class Field(ndarray):
 	#
 	# differentiation
 	#
+	
+	def expdsq(self, l):
+		"""return exp(l*del^2) self.
+		
+This is the minimum useful spectral method.
+"""
+		k = self.abscissae.kspace()
+		dvec = exp(l*(k**2).sum(axis=0))
+		return Field(ifftn(dvec*fftn(self.view(ndarray))), self.abscissae)
 	
 	#
 	# interpolation
