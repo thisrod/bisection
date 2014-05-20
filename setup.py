@@ -47,12 +47,10 @@ S = wgt.sampled(S).support(cut=exp(-Kcut/(2*2.5**2)))
 S = S[:,:,1:-1]
 
 # load and rotate potentials
-# workaround: field slices n.y.i., cast to ndarray
-K = array((s*T).blank())
+K = (s*T).blank()
 for i in range(len(s)):
 	vfile = loadmat('potentials/RWA_X_3D_' + str(i) + '.mat')
 	K[i,:,:,:] = vfile['v']
-K = Field(K, s*T)
 K = 0.1719*K.sampled(s*S)
 assert not isnan(K).any()
 
