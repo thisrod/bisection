@@ -68,3 +68,13 @@ for j in range(1):
 		w *= sqrt(N/(w**2).S())
 	print()
 	q[j,:,:,:] = w
+
+# plot sections through centre of weight
+x, y, z = S[;,0,0], S[0,:,0], S[0,0,:]
+y0 = S
+slice = x*Grid.from_axes([0])*z
+figure()
+# extent=(z[0], z[-1], x[0], x[-1])
+imshow(w.sampled(slice), aspect='auto', interpolation='nearest').set_cmap('gray')
+xlabel('z');  ylabel('x')
+savefig('gsxz.pdf')

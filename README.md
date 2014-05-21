@@ -95,6 +95,15 @@ Low rank grids
 
 We said at the start that a `Grid` need not be aligned with the usual axes, or start at the origin.  There is a further generalisation: the dimension of a `Grid` may exceed its rank.  For example, a rank 2 grid might have points lying in R<sup>3</sup>, on the plane x+y+z=1.  This is the most general case.
 
+Sampling on a one-point grid interpolates a section.
+
+Sampling from a one-point grid multiplies by a delta function at the point.
+
+Sampling on a low-rank grid integrates over missing axes.
+
+Sampling from a low-rank grid assumes constant over missing axes.
+
+The above rules make sampling between one-point and low-rank grids an identity.
 
 
 Efficiency goals
@@ -111,3 +120,11 @@ This library was inspired by XMDS by Greg Collecutt.  With a decade of hindsight
 Many details were inspired by the books of Nick L. Trefethen, the clarity of whose thoughts and programs I greatly admire.
 
 The names of the methods `w` and `W` are intended to suggest a coordinate or a frequency, but be ambigous between the two.
+
+
+Things to change
+---
+
+It would be nice to use the fielab idea, where subscripts in parentheses refer to coordinates and those in brackets refer to indices.  In Python, however, we can't use slice syntax in function calls, so that wouldn't be practical.  Users should refer to coordinates far more often than they refer to indices, so subscripts should be grid coordinates.  There might be trouble ensuring that a grid actually contains points, but `[w-0.5*h, w+0.5*h]` will do that.
+
+The syntax for delta grids and low-rank grids can be as follows: `R[:, None]` is a rank 1 grid, but `R[:, pi]` is a delta grid.
