@@ -22,23 +22,23 @@ vfile = loadmat('potentials/RWA_X_3D_0.mat')
 T = Grid.from_axes(*[10*vfile[q] for q in ['x', 'y', 'z']])
 
 # load final potential, shift to avoid underflow
-K = Field(0.1719*loadmat('potentials/RWA_X_3D_17.mat')['v'], T)
+K = SampledField(0.1719*loadmat('potentials/RWA_X_3D_17.mat')['v'], T)
 K -= K.min()
 
 # shift grid origin to centre of weight
 wgt = exp(-K/(2*2.88**2))
-T = T.shifted((wgt.w()*wgt).S()/wgt.S())
+T = T.shifted((wgt.r()*wgt).S()/wgt.S())
 wgt = wgt.sampled(T)
 
 # find the principal axes and
 # set U to the rotation from the trap-aligned frame to the original data frame
-ew, ev = eig((wgt*wgt.ww()).S())
+ew, ev = eig((wgt*wgt.rr()).S())
 U = ev[:,(1,2,0)]	# order of increasing moments is z, x, y
 U = dot(U, diagflat(sign(diag(U))))	# align senses
 S = T.rotated(U)
 
 # load inital potential, combine weights
-K = Field(0.1719*loadmat('potentials/RWA_X_3D_0.mat')['v'], T)
+K = SampledField(0.1719*loadmat('potentials/RWA_X_3D_0.mat')['v'], T)
 K -= K.min()
 wgt += exp(-K/(2*2.35**2))
 
@@ -56,13 +56,12 @@ K = 0.1719*K.sampled(s*S)
 assert not isnan(K).any()
 
 # find ground states
-q = (s*S).blank()
+q = 0j*(s*S).blank()
 for j in range(1):
 	w = 1+0*K[j,:,:,:]; w *= sqrt(N/(w**2).S())
 	print('\nSplit step')
 	for i in range(100):
-		print('#', end='')
-		sys.stdout.flush()
+		print('#', end=''); sys.stdout.flush()
 		w = w.expdsq(-l)
 		w *= exp(-l*(K[j,:,:,:]+1.330*abs(w)**2))
 		w *= sqrt(N/(w**2).S())
@@ -70,11 +69,14 @@ for j in range(1):
 	q[j,:,:,:] = w
 
 # plot sections through centre of weight
-x, y, z = S[;,0,0], S[0,:,0], S[0,0,:]
-y0 = S
-slice = x*Grid.from_axes([0])*z
+# FIXME bodgy.  delta needs to be generalised
+dfun = Grid.delta(0)
+D = dfun*(dfun*dfun*dfun).rotated(S.U)
+ds, dx, dy, dz = D.axes()
+s, x, y, z = (s*S).axes()
+slice = ds*x*dy*z
 figure()
-# extent=(z[0], z[-1], x[0], x[-1])
-imshow(w.sampled(slice), aspect='auto', interpolation='nearest').set_cmap('gray')
+rho = squeeze(array((abs(q)**2).sampled(slice)))
+imshow(rho, aspect='auto', interpolation='nearest').set_cmap('gray')
 xlabel('z');  ylabel('x')
 savefig('gsxz.pdf')
