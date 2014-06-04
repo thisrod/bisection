@@ -76,7 +76,6 @@ ds, dx, dy, dz = D.axes()
 s, x, y, z = (s*S).axes()
 slice = ds*x*dy*z
 figure()
-rho = squeeze(array((abs(q)**2).sampled(slice)))
-imshow(rho, aspect='auto', interpolation='nearest').set_cmap('gray')
+(abs(q)**2).sampled(slice).section_negative()
 xlabel('z');  ylabel('x')
 savefig('gsxz.pdf')
