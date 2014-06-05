@@ -9,24 +9,23 @@ from scipy.io import loadmat
 import sys
 
 # everything is in dispersion units, 10^-7 m
-# T is the grid supplied by Vienna, shifted to the centre of mass
-# S is the computation grid, in the trap-aligned frame, covering just the volume where atoms are to be found.
+# R is the computation grid, in the trap-aligned frame, covering just the volume where atoms are to be found.
 
 Kcut = 10		# potential at which to truncate grid V
 N = 7e3		# number of atoms
 l = 2e-1		# timestep for imag. time integration
-s = Grid.from_axes(1e-3*arange(18)/1.368e-5)	# times samples supplied
 
-# load supplied grid
+# T is the 3D grid on which the supplied potential was sampled
+# 3D resampling on a 4D common space n.y.i.
 vfile = loadmat('potentials/RWA_X_3D_0.mat')
 T = Grid.from_axes(*[10*vfile[q] for q in ['x', 'y', 'z']])
 
 # load final potential, shift to avoid underflow
-K = SampledField(0.1719*loadmat('potentials/RWA_X_3D_17.mat')['v'], T)
-K -= K.min()
+K1 = SampledField(0.1719*loadmat('potentials/RWA_X_3D_17.mat')['v'], T)
+K1 -= K1.min()
 
-# shift grid origin to centre of weight
-wgt = exp(-K/(2*2.88**2))
+# shift T grid origin to thermal cloud centre of mass
+wgt = exp(-K1/(2*2.88**2))
 T = T.shifted((wgt.r()*wgt).S()/wgt.S())
 wgt = wgt.sampled(T)
 
@@ -35,28 +34,30 @@ wgt = wgt.sampled(T)
 ew, ev = eig((wgt*wgt.rr()).S())
 U = ev[:,(1,2,0)]	# order of increasing moments is z, x, y
 U = dot(U, diagflat(sign(diag(U))))	# align senses
-S = T.rotated(U)
 
 # load inital potential, combine weights
-K = SampledField(0.1719*loadmat('potentials/RWA_X_3D_0.mat')['v'], T)
-K -= K.min()
-wgt += exp(-K/(2*2.35**2))
+K0 = SampledField(0.1719*loadmat('potentials/RWA_X_3D_0.mat')['v'], T)
+K0 -= K0.min()
+wgt += exp(-K0/(2*2.35**2))
 
-# truncate S to bounds of atoms in initial and final potentials
+# set up trap frame S, and extend to 3+1D
+S = T.rotated(U)
 S = wgt.sampled(S).support(cut=exp(-Kcut/(2*2.5**2)))
 # trim z axis to avoid extrapolation
 S = S[:,:,1:-1]
+S = Grid.from_axes(1e-3*arange(18)/1.368e-5)*S
+s, x, y, z = S.axes
 
 # load and rotate potentials
-K = (s*T).blank()
+K = (Grid.from_axes(1e-3*arange(18)/1.368e-5)*T).blank()
 for i in range(len(s)):
 	vfile = loadmat('potentials/RWA_X_3D_' + str(i) + '.mat')
 	K[i,:,:,:] = vfile['v']
-K = 0.1719*K.sampled(s*S)
+K = 0.1719*K.sampled(S)
 assert not isnan(K).any()
 
 # find ground states
-q = 0j*(s*S).blank()
+q = 0j*S.blank()
 for j in range(1):
 	w = 1+0*K[j,:,:,:]; w *= sqrt(N/(w**2).S())
 	print('\nSplit step')
@@ -71,11 +72,10 @@ for j in range(1):
 # plot sections through centre of weight
 # FIXME bodgy.  delta needs to be generalised
 dfun = Grid.delta(0)
-D = dfun*(dfun*dfun*dfun).rotated(S.U)
-ds, dx, dy, dz = D.axes()
-s, x, y, z = (s*S).axes()
-slice = ds*x*dy*z
+D = dfun*(dfun*dfun*dfun).rotated(U)
+ds, dx, dy, dz = D.axes
+slice = x*dy*z
 figure()
-(abs(q)**2).sampled(slice).section_negative()
+(abs(w)**2).sampled(slice).section_positive()
 xlabel('z');  ylabel('x')
 savefig('gsxz.pdf')
