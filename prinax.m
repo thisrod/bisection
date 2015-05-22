@@ -49,6 +49,7 @@ function [x, y, z, K] = loadk(t, U, r0)
 	# interp3 takes meshgrid order, reshape takes ndgrid order
 	K = reshape(interp3(ya, xa, za, K, R(2,:), R(1,:), R(3,:)), size(K));
 	# trim extrapolated points from rotated grid
-	x = x(4:end-3);  y = y;  z = z(2:end-1);
-	K = K(4:end-3, :, 2:end-1);
+	# even dimensions for easy spectral formulae
+	x = x(5:end-3);  y = y(2:end);  z = z(2:end-1);
+	K = K(5:end-3, 2:end, 2:end-1);
 endfunction
