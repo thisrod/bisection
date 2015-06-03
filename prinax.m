@@ -8,13 +8,15 @@ x = 10*x;  y = 10*y;  z = 10*z;
 K = 0.1719*v;
 K = K - min(min(min(K)));
 
-# set up grid
-[X0,Y0,Z0] = ndgrid(x,y,z);
+function [r, rho] = tcent(x, y, z, K)
+	[X0,Y0,Z0] = ndgrid(x,y,z);
+	rho = exp(-K/(2*2.88^2));
+	rho = rho(:);
+	r = [X0(:) Y0(:) Z0(:)]'*rho/sum(rho);
+endfunction
 
 # find nominal density, shift origin to centre of mass
-rho = exp(-K/(2*2.88^2));
-rho = rho(:);
-r0 = [X0(:) Y0(:) Z0(:)]'*rho/sum(rho);
+[r0, rho] = tcent(x,y,z,K);
 xa = x-r0(1);  ya = y - r0(2);  za = z-r0(3);
 [X,Y,Z] = ndgrid(xa,ya,za);
 X = X(:);  Y = Y(:);  Z = Z(:);
