@@ -1,0 +1,11 @@
+\input xpmath
+
+\def\t{^{\rm T}}
+
+This script fits a quadratic potential to the initial Vienna trap, with the form
+$$\eqalign{K(r)&=(r-r₀-r₁)\t U(r-r₀-r₁)\cr
+	&=(r-r₀)\t U(r-r₀)-2r₁\t U(r-r₀)+r₁\t Ur₁.}
+$$
+Here, $U$ is a symmetric matrix.  The position $r₀$ is the centre of mass calculated by {\tt prinax}.  This is known from the start, and will ensure that $r₁$ is small.  The term $r₁\t Ur₁$ is very small, and if it is set to zero, the problem becomes a linear regression in the independent quantities $U$ and $a=-2r₁\t U$.  If necessary, the centre of mass can be updated to $r₀+r₁$, and the problem solved iteratively for a sequence $r₀$, $r₁$, $r₂$, $…$.
+
+\bye
