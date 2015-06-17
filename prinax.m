@@ -2,18 +2,28 @@
 
 N = 7e3;		# nominal number of atoms
 
-# load parallel cigar potential, and convert to dispersion units
-load potentials/RWA_X_3D_17.mat
-x = 10*x;  y = 10*y;  z = 10*z;
-K = 0.1719*v;
-K = K - min(min(min(K)));
+function [x, y, z, K] = loadk(t, U, r0)
+	% load potential in dispersion um, rotate to prinaxes.
+	load(['potentials/RWA_X_3D_' int2str(t) '.mat'])
+	K = 17.19*v;  K = K - min(K(:));
+	if nargin == 1, return, endif
+	x1 = x-r0(1);  y1 = y - r0(2);  z1 = z-r0(3);
+	[X, Y, Z] = ndgrid(x1, y1, z1);
+	R = U*[X(:) Y(:) Z(:)]';
+	# interp3 takes meshgrid order, reshape takes ndgrid order
+	K = interp3(y1, x1, z1, K, R(2,:), R(1,:), R(3,:));
+	K = reshape(K, size(X));
+endfunction
 
 function [r, rho] = tcent(x, y, z, K)
-	[X0,Y0,Z0] = ndgrid(x,y,z);
-	rho = exp(-K/(2*2.88^2));
-	rho = rho(:);
-	r = [X0(:) Y0(:) Z0(:)]'*rho/sum(rho);
+	% centre of mass of a thermal cloud
+	[X,Y,Z] = ndgrid(x,y,z);
+	rho = exp(-K/(2*0.25^2));  rho = rho(:);
+	r = [X(:) Y(:) Z(:)]'*rho/sum(rho);
 endfunction
+
+% find principal axes of parallel lines of atoms
+[x, y, z, K] = loadk(17);
 
 # find nominal density, shift origin to centre of mass
 [r0, rho] = tcent(x,y,z,K);
@@ -40,18 +50,3 @@ for i = 1:3
 	U(:,i) = sign(U(i,i))*U(:,i)/norm(U(:,i));
 end
 
-function [x, y, z, K] = loadk(t, U, r0)
-	load(['potentials/RWA_X_3D_' int2str(t) '.mat'])
-	x = 10*x;  y = 10*y;  z = 10*z;
-	xa = x-r0(1);  ya = y - r0(2);  za = z-r0(3);
-	K = 0.1719*v;
-	K = K - min(min(min(K)));
-	[X, Y, Z] = ndgrid(xa, ya, za);
-	R = U*[X(:) Y(:) Z(:)]';
-	# interp3 takes meshgrid order, reshape takes ndgrid order
-	K = reshape(interp3(ya, xa, za, K, R(2,:), R(1,:), R(3,:)), size(K));
-	# trim extrapolated points from rotated grid
-	# even dimensions for easy spectral formulae
-	x = x(5:end-3);  y = y(2:end);  z = z(2:end-1);
-	K = K(5:end-3, 2:end, 2:end-1);
-endfunction
