@@ -9,7 +9,7 @@ cfs = repmat(nan, 5, 18);		% cols hold coefficients [x^4 1 x^2 y^2 z^2]
 tic
 for t = 0:17
 	[x, y, z, K] = loadk(t);
-	[r0, wgt] = tcent(x,y,z,K);
+	[r0, wgt] = tcent(x,y,z,K);  win = wgt > 0.01;  wgt = wgt(win);
 	x1 = x - r0(1);  y1 = y - r0(2);  z1 = z - r0(3);
 	
 	% fit symmetric quartic to potential well below second excited state
@@ -21,10 +21,9 @@ for t = 0:17
 	cfs(1:3, t+1) = [xf.^4 ones(size(xf)) xf.^2] \ K1(K1 <= 50);
 	
 	% r expands sample points over principal axes
-	% TODO filter out rows with tiny weights
-	[X,Y,Z] = ndgrid(x1,y1,z1);  r = [X(:) Y(:) Z(:)]*U;
-	rsdl = K(:) - [r(:,1).^4 ones(size(r(:,1))) r(:,1).^2]*cfs(1:3, t+1);
-	cfs(4:5, t+1) = ([r(:,2).^2 r(:,3).^2].*[wgt wgt]) \ (rsdl.*wgt);
+	[X,Y,Z] = ndgrid(x1,y1,z1);  r = [X(:) Y(:) Z(:)]*U;  w = r(win,:);
+	rsdl = K(:)(win) - [w(:,1).^4 ones(size(w(:,1))) w(:,1).^2]*cfs(1:3, t+1);
+	cfs(4:5, t+1) = ([w(:,2).^2 w(:,3).^2].*[wgt wgt]) \ (rsdl.*wgt);
 	
 	if t == 13
 		Ks = K;  Ks1 = K1;  rr = r0;  j0 = i3;
