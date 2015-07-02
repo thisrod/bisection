@@ -9,7 +9,7 @@ function h = zplot(x, y, w)
 
 w = w(:);
 pixels = hsv2rgb([0.5*(1+angle(w)/pi), ones(size(w)), abs(w)/max(abs(w))]);
-pixels = reshape(pixels, numel(x), numel(y), 3);
+pixels = reshape(pixels, numel(y), numel(x), 3);
 h = image(x, y, pixels);
 set(gca, 'YDir', 'normal')
 if nargout==0; clear h; end
