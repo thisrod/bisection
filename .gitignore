@@ -3,3 +3,5 @@
 *.pdf
 potentials
 *.npz
+*.mat
+*.eps
