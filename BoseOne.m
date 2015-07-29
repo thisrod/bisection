@@ -9,7 +9,6 @@ in.name =       'two dimensional Vienna trap, imaginary time initial state';
 in.dimension =  3;                             % t,x,y
 in.fields =     1; 
 in.ranges =     [tmax,6,200];
-% in.noises =     [2,2];                         %%xnoises, knoises per point
 % in.ensembles =  [10,4,4];                      %%samples,ensembles,parallel
 in.order = 0;
 in.steps = 10*tmax;
@@ -27,14 +26,18 @@ gr.olabels =    {'<|\psi|^2>'};
 
 in2 = in;
 in2.name =       'two dimensional Vienna trap splitting';
-in2.da  =        @Db;
-in2.linear =     @(D,in) 0.5*1i*(D.x.^2 + D.y.^2); 
-in2.step = @xMP;
-in2.ranges =     [17/1.368,6,200];
-in2.steps = 50;
-gr2 = gr;
-gr.images =     [2];
+in2.seed = 	29101977;
+in2.initials =	@(r,w,in,r0,a0,in0) a0 + [1 1i]*w/sqrt(2);
+in2.da =		@Db;
+in2.linear =	@(D,in) 0.5*1i*(D.x.^2 + D.y.^2); 
+in2.step =		@xMP;
+in2.ranges =	[17/1.368,6,200];
+in2.noises =	[2 0];		% Re and Im
+in2.steps =	50;
+in.ensembles =	[1 1 2];                      %%samples,ensembles,parallel
 
+gr2 = gr;
+gr.images =	[5];
 
 e  =  xspde({in, in2},{gr, gr});                            %%Stochasic program
 end                                            %%end of main function
