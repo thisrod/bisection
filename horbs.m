@@ -30,13 +30,16 @@ w = zeros(17, hit, 3*N^2);
 
 for t = 0:17
 	K(t+1,:) = [X(:).^4 ones(size(X(:))) X(:).^2 Y(:).^2]*cfs(1:4,t+1);
-	HAM = 0.5*(-LAP+diag(K(t+1,:)));
-	[Q, ks] = eig(HAM);
-	[~,i] = sort(diag(ks));
-	if t == 0, Q(:,i(2)) = Q(:,i(3)); end	% degeneracy
-	q(t+1,:,:) = sqrt(7000)*Q(:,i(1:2));
-endfor
+	for j = 2:hit
+		HAM = 0.5*(-LAP+diag(K(t+1,:)));
+		ww = squeeze(w(t+1, j-1, :));
+		HAM = HAM + diag(0.5*0.1330*q1*abs(ww).^2);
+		[Q, ks] = eig(HAM);
+		[~,i] = sort(diag(ks));
+		w(t+1, j, :) = sqrt(7000)*Q(:,i(1));
+	end
+end
 
 % gnuplot can't do contours, so save for Matlab
 
-save -mat horbsplotdat.mat t x y K q
+save -mat horbsplotdat.mat t x y K q w
