@@ -1,7 +1,9 @@
-function [e] = BoseOne()                        %%name of main function
+function BoseOne(task)                        %%name of main function
 
 % This script calls the trap axis x in order to plot 1D graphs along
 % it. The bisection axis is called y.  The graph labels match my thesis.
+
+% The intent is to call the function on the supercomputer to save an HDF file, then on a terminal to plot the grphs.  This is determined by the input argument: 'compute' generates data, 'plot' does graphs.  The default is to do both.
 
 gr1.xlabels = {'t', 'z', 'x'};
 
@@ -23,7 +25,7 @@ icond.initial =		@(w,r) ones(size(r.x));
 icond.da =		@Da;
 icond.linear =		@(D,r) 0.5*(D.x.^2 + D.y.^2); 
 % icond.observe =	@(a,~,~) abs(a).^2;
-icond.ensembles =	[10 10];
+icond.ensembles =	2;
 
 gr1.images =		[0];
 gr1.olabels =		{'<|\psi|^2>'};
@@ -67,7 +69,13 @@ gr2.olabels{6} =		{'n_r'};
 monte.observe{7} =	@vnce;
 gr2.olabels{7} =		{':(n_r-n_l)^2:'};
 
-e  =  xspde({icond, monte}, {gr1, gr2});
+if nargin == 0 || strcmp(task, 'compute')
+	xsim({icond, monte})
+end
+
+if nargin == 0 || strcmp(task, 'plot')
+	xgraph({''}, monte, gr2)
+end
 
 end	% function BoseOne
 
