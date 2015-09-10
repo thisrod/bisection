@@ -4,7 +4,7 @@
 
 % Spectral matrix from Program 8 of 2000-Trefethen-Spectral
 
-q1 = sqrt(7000/200);	% 1D order parameter
+n1 = 7000/200;	% 1D density
 
 % y axis samples N points in (-L,L], x axis 3N in (-3L,3L]
 % keep the axes consistent with qrtfit.m
@@ -23,22 +23,25 @@ dxx = ssd(3*N, 3*L);  Dxx = kron(eye(N), dxx);
 dyy = ssd(N, L);  Dyy = kron(dyy, eye(3*N));
 LAP = Dxx + Dyy;
 
-hit = 5;					% Hartree iterations
-K = zeros(17, 3*N^2);
-q = zeros(17, 3*N^2, 2);		% ground state and first excited state
-w = zeros(17, hit, 3*N^2);
+hit = 6;					% Hartree iterations
+K = zeros(18, 3*N^2);
+q = zeros(18, 3*N^2, 2);		% ground state and first excited state
+w = zeros(18, hit, 3*N^2, 2);
 
-for t = 0:17
+for n = 1:2, for t = 0:17
 	K(t+1,:) = [X(:).^4 ones(size(X(:))) X(:).^2 Y(:).^2]*cfs(1:4,t+1);
 	for j = 2:hit
 		HAM = 0.5*(-LAP+diag(K(t+1,:)));
-		ww = squeeze(w(t+1, j-1, :));
-		HAM = HAM + diag(0.5*0.1330*q1*abs(ww).^2);
+		% average pairs of densities for stability
+		% n2 = squeeze(abs(w(t+1, j-1, :, n)).^2 + abs(w(t+1, j-2, :, n)).^2) / 2;
+		n2 = squeeze(abs(w(t+1, j-1, :, n)).^2);
+		disp([n1 h^2*sum(n2(:)) max(n2(:)) n1*max(n2(:))])
+		HAM = HAM + diag(0.5*0.1330*n1*n2);
 		[Q, ks] = eig(HAM);
 		[~,i] = sort(diag(ks));
-		w(t+1, j, :) = sqrt(7000)*Q(:,i(1));
+		w(t+1, j, :, n) = Q(:,i(n))/h;
 	end
-end
+end, end
 
 % gnuplot can't do contours, so save for Matlab
 

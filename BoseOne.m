@@ -23,7 +23,7 @@ icond.initial =		@(w,r) ones(size(r.x));
 icond.da =		@Da;
 icond.linear =		@(D,r) 0.5*(D.x.^2 + D.y.^2); 
 % icond.observe =	@(a,~,~) abs(a).^2;
-icond.ensembles =	[1 1 1];
+icond.ensembles =	[10 10];
 
 gr1.images =		[0];
 gr1.olabels =		{'<|\psi|^2>'};
@@ -31,17 +31,18 @@ gr1.olabels =		{'<|\psi|^2>'};
 monte = icond;
 monte.name =		'two dimensional Vienna trap splitting';
 monte.seed =		29101977;
-monte.transfer =		@(w,r,a0,r0) a0 + [1 1i]*w/sqrt(2);
+monte.noises =		[2 0];	% Re and Im
+monte.transfer =	@(w,r,a0,r0) a0 + [1 1i]*w/sqrt(2);
 monte.da =		@Db;
 monte.linear =		@(D,r) 0.5*1i*(D.x.^2 + D.y.^2); 
 monte.step =		@xMP;
 monte.ranges =	[17/1.368,200,6];
-monte.noises =		[2 0];	% Re and Im
-monte.steps =		50;
+monte.steps =		100;
+monte.HDF5file =	'BoseOut.h5';
 
 gr2 = gr1;
-gr2.images =		[5];
-gr2.pdimension =	[3 2];
+gr2.images =		[5 0 0 0 0 0 0];
+gr2.transverse =	[0 0 0 0 0 0 5];
 
 monte.observe{1} =	@(a,r) abs(a).^2 - 1/(2*r.dV);
 gr2.olabels{1} =		{'n'};
@@ -55,8 +56,16 @@ gr2.olabels{3} =		{'\phi_L'};
 monte.observe{4} =	@(a,r) angle(conj(aone(a,r,+1)).*aone(a,r,-1));
 gr2.olabels{4} =		{'\phi_-'};
 
-% monte.observe = @foo;
-% gr2.olabels =		{'\phi_-'};
+% number correlation observables
+
+monte.observe{5} =	@(a,r) (r.y<0).*(abs(a).^2-1/(2*r.dV));
+gr2.olabels{5} =		{'n_l'};
+
+monte.observe{6} =	@(a,r) (r.y>0).*(abs(a).^2-1/(2*r.dV));
+gr2.olabels{6} =		{'n_r'};
+
+monte.observe{7} =	@vnce;
+gr2.olabels{7} =		{':(n_r-n_l)^2:'};
 
 e  =  xspde({icond, monte}, {gr1, gr2});
 
@@ -66,6 +75,13 @@ function b = nrmstp(a,r,xi,dt)
 	b = xMP(a,r,xi,dt);
 	s = xint(abs(b).^2, r, r.dx);
 	b = sqrt(7000./s).*b;
+end
+
+function o = vnce(a,r)
+	m = r.dx;  m(2) = 0;	% IWRT y
+	I = sign(r.y).*(abs(a).^2-1/(2*r.dV));
+	II = (abs(a).^2-1/(4*r.dV))/r.dx(2);
+	o = xint(I, r, m).^2 - xint(II, r, m);
 end
 
 function f = aone(a,r,dn)

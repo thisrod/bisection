@@ -1,1 +1,1 @@
-addpath /Users/rpolkinghorne/Downloads/XSPDE0.91/xSPDE/
+addpath /Users/rpolkinghorne/Downloads/XSPDE1.0/xSPDE/
