@@ -8,7 +8,6 @@ function BoseOne(task)                        %%name of main function
 gr1.xlabels = {'t', 'z', 'x'};
 
 global cfs,  load cfs
-cfs = cfs([1 2 3 5], :);  % column i has coefs of [y^4 1 y^2 x^2] at t/ms = i-1
 
 tmax = 5;
 
@@ -16,6 +15,7 @@ icond.name =		'two dimensional Vienna trap, imaginary time initial state';
 icond.dimension =	3;
 icond.fields =		1; 
 icond.ranges =		[tmax,200,6];
+icond.cfs =		cfs([1 2 3 5], :);  % quartics.  column i has coefs of [y^4 1 y^2 x^2] at t/ms = i-1
 icond.points =		[49 70 27];
 icond.order =		0;
 icond.steps =		10*tmax;
@@ -25,7 +25,7 @@ icond.initial =		@(w,r) ones(size(r.x));
 icond.da =		@Da;
 icond.linear =		@(D,r) 0.5*(D.x.^2 + D.y.^2); 
 % icond.observe =	@(a,~,~) abs(a).^2;
-icond.ensembles =	2;
+icond.ensembles =	[1 1 5];
 
 gr1.images =		[0];
 gr1.olabels =		{'<|\psi|^2>'};
@@ -108,17 +108,15 @@ end
 % FIXME D.R.Y.
 
 function da  =  Da(a,r,~)
-	global cfs
-	K = [r.y(:).^4 ones(size(r.x(:))) r.y(:).^2 r.x(:).^2]*cfs(:, 1);
+	K = [r.y(:).^4 ones(size(r.x(:))) r.y(:).^2 r.x(:).^2]*r.cfs(:, 1);
 	K = reshape(K, size(r.x));
 	K = min(K, 100);		% trim unphysical part from quartic fit
 	da = -0.5*(K + 0.2255*abs(a).^2).*a;
 end
 
 function da  =  Db(a,r,~)
-	global cfs
 	ts = (0:17)/1.368;
-	c = interp1(ts, cfs', r.t)';
+	c = interp1(ts, r.cfs', r.t)';
 	K = [r.y(:).^4 ones(size(r.x(:))) r.y(:).^2 r.x(:).^2]*c;
 	K = reshape(K, size(r.x));
 	K = min(K, 100);		% trim unphysical part from quartic fit
