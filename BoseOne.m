@@ -20,12 +20,11 @@ icond.points =		[49 70 27];
 icond.order =		0;
 icond.steps =		10*tmax;
 icond.step =		@nrmstp;
-% icond.graphs =		[0 0 0 0];
 icond.initial =		@(w,r) ones(size(r.x));
 icond.da =		@Da;
 icond.linear =		@(D,r) 0.5*(D.x.^2 + D.y.^2); 
 % icond.observe =	@(a,~,~) abs(a).^2;
-icond.ensembles =	2;
+icond.ensembles =	[3 1 3];
 
 gr1.images =		[0];
 gr1.olabels =		{'<|\psi|^2>'};
