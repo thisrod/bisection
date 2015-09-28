@@ -5,6 +5,7 @@ function BoseOne(task)                        %%name of main function
 
 % The intent is to call the function on the supercomputer to save an HDF file, then on a terminal to plot the grphs.  This is determined by the input argument: 'compute' generates data, 'plot' does graphs.  The default is to do both.
 
+
 gr1.xlabels = {'t', 'z', 'x'};
 
 global cfs,  load cfs
@@ -24,7 +25,7 @@ icond.initial =		@(w,r) ones(size(r.x));
 icond.da =		@Da;
 icond.linear =		@(D,r) 0.5*(D.x.^2 + D.y.^2); 
 % icond.observe =	@(a,~,~) abs(a).^2;
-icond.ensembles =	[1 1 24];
+icond.ensembles =	[30 3 32];
 
 gr1.images =		[0];
 gr1.olabels =		{'<|\psi|^2>'};
@@ -42,33 +43,50 @@ monte.steps =		100;
 monte.HDF5file =	'BoseOut.h5';
 
 gr2 = gr1;
-gr2.images =		[5 0 0 0 0 0 0];
-gr2.transverse =	[0 0 0 0 5 5 5];
+% gr2.images =		[5 0 0 0 0 0 0];
+% gr2.transverse =	[0 0 0 0 5 5 5];
 
-monte.observe{1} =	@(a,r) abs(a).^2 - 1/(2*r.dV);
-gr2.olabels{1} =		{'n'};
+% monte.observe{1} =	@(a,r) abs(a).^2 - 1/(2*r.dV);
+% gr2.olabels{1} =		{'n'};
 
-monte.observe{2} =	@(a,r) angle(aone(a,r,+1));
-gr2.olabels{2} =		{'\phi_R'};
+% monte.observe{2} =	@(a,r) angle(aone(a,r,+1));
+% gr2.olabels{2} =		{'\phi_R'};
 
-monte.observe{3} =	@(a,r) angle(aone(a,r,-1));
-gr2.olabels{3} =		{'\phi_L'};
+% monte.observe{3} =	@(a,r) angle(aone(a,r,-1));
+% gr2.olabels{3} =		{'\phi_L'};
 
-monte.observe{4} =	@(a,r) angle(conj(aone(a,r,+1)).*aone(a,r,-1));
-gr2.olabels{4} =		{'\phi_-'};
+% monte.observe{4} =	@(a,r) angle(conj(aone(a,r,+1)).*aone(a,r,-1));
+% gr2.olabels{4} =		{'\phi_-'};
 
-% number correlation observables
+% % number correlation observables
 
-monte.observe{5} =	@(a,r) dens(a,r,-1);
-gr2.olabels{5} =		{'n_l'};
+% monte.observe{5} =	@(a,r) dens(a,r,-1);
+% gr2.olabels{5} =		{'n_l'};
 
-monte.observe{6} =	@(a,r) dens(a,r,+1);
-gr2.olabels{6} =		{'n_r'};
+% monte.observe{6} =	@(a,r) dens(a,r,+1);
+% gr2.olabels{6} =		{'n_r'};
 
-monte.observe{7} =	@vnce;
-gr2.olabels{7} =		{':(n_r-n_l)^2:'};
+% monte.observe{7} =	@vnce;
+% gr2.olabels{7} =		{':(n_r-n_l)^2:'};
+
+% Total number observables.  A significant number of particles lies at r.y==0, and we count half of these on each side
+
+monte.observe{1} =	@(a,r)  xint(((r.y<0)+0.5*(r.y==0)).*(abs(a).^2-1/(2*r.dV)), r, r.dx);
+gr2.olabels{1} =		{'N_l'};
+
+monte.observe{2} =	@(a,r)  xint(((r.y>0)+0.5*(r.y==0)).*(abs(a).^2-1/(2*r.dV)), r, r.dx);
+gr2.olabels{2} =		{'N_r'};
+
+monte.observe{3} = @(a,r) xint(sign(r.y).*(abs(a).^2-1/(2*r.dV)), r, r.dx).^2 - prod(r.points(2:end))/4;
+gr2.olabels{3} =		{'<(N_r-N_l)^2>'};
+
+monte.observe{4} =	@(a,r)  xint(abs(a).^2-1/(2*r.dV), r, r.dx);
+gr2.olabels{4} =		{'N'};
+
+gr2.pdimension =	ones(size(monte.observe));
 
 if nargin == 0 || strcmp(task, 'compute')
+	parpool(monte.ensembles(end))
 	xsim({icond, monte})
 end
 
