@@ -17,7 +17,7 @@ icond.dimension =	3;
 icond.fields =		1; 
 icond.ranges =		[tmax,200,6];
 icond.cfs =		cfs([1 2 3 5], :);  % quartics.  column i has coefs of [y^4 1 y^2 x^2] at t/ms = i-1
-icond.points =		[49 70 27];
+icond.points =		[49 70 28];
 % icond.order =		0;
 icond.steps =		20*tmax;
 icond.step =		@nrmstp;
@@ -69,24 +69,27 @@ gr2 = gr1;
 % monte.observe{7} =	@vnce;
 % gr2.olabels{7} =		{':(n_r-n_l)^2:'};
 
-% Total number observables.  A significant number of particles lies at r.y==0, and we count half of these on each side
+% Total number observables.  A significant number of particles lies at r.y==0; we don't count these, because there is no way to cleanly separate them when calculating the variance.
 
-monte.observe{1} =	@(a,r)  xint(((r.y<0)+0.5*(r.y==0)).*(abs(a).^2-1/(2*r.dV)), r, r.dx);
+monte.observe{1} =	@(a,r)  xint((r.y<0).*(abs(a).^2-1/(2*r.dV)), r, r.dx);
 gr2.olabels{1} =		{'N_l'};
 
-monte.observe{2} =	@(a,r)  xint(((r.y>0)+0.5*(r.y==0)).*(abs(a).^2-1/(2*r.dV)), r, r.dx);
+monte.observe{2} =	@(a,r)  xint((r.y>0).*(abs(a).^2-1/(2*r.dV)), r, r.dx);
 gr2.olabels{2} =		{'N_r'};
 
-monte.observe{3} = @(a,r) xint(sign(r.y).*(abs(a).^2-1/(2*r.dV)), r, r.dx).^2 - prod(r.points(2:end))/4;
-gr2.olabels{3} =		{'<(N_r-N_l)^2>'};
+monte.observe{3} = @(a,r) ...
+	( xint(sign(r.y).*(abs(a).^2-1/(2*r.dV)), r, r.dx).^2 - prod(r.points(2:end))/4 ) ...
+	/ xave(xint((r.y~=0).*(abs(a).^2-1/(2*r.dV)), r, r.dx));
 
-monte.observe{4} =	@(a,r)  xint(abs(a).^2-1/(2*r.dV), r, r.dx);
+gr2.olabels{3} =		{'<(N_r-N_l)^2>/<N_l+N_r>'};
+
+monte.observe{4} =	@(a,r)  xint((r.y~=0).*(abs(a).^2-1/(2*r.dV)), r, r.dx);
 gr2.olabels{4} =		{'N'};
 
 gr2.pdimension =	ones(size(monte.observe));
 
 if nargin == 0 || strcmp(task, 'compute')
-	parpool(monte.ensembles(end))
+	parpool(32)
 	xsim({icond, monte})
 end
 
