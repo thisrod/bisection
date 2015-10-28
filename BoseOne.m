@@ -1,4 +1,4 @@
-function BoseOne(task)                        %%name of main function
+function BoseOne()                        %%name of main function
 
 % This function computes the observables, and saves them to a file
 % BoseOut_N.mat, where N is a serial number for the run of the
@@ -33,15 +33,15 @@ icond.linear =		@(D,r) 0.5*(D.x.^2 + D.y.^2);
 icond.ensembles =	[30 4 32];
 icond.images =		[5];
 icond.olabels =		{'<|\psi|^2>'};
-icond.file =		'BoseHalfSplit.mat';
+icond.file =		'BoseHalfHold.mat';
 
 monte = icond;
-monte.name =		'simulate Vienna trap splitting by truncated Wigner in two dimensions';
+monte.name =		'simulate initial Vienna trap by truncated Wigner in two dimensions';
 monte.seed =		29101977;
 monte.randoms =	[2 0];	% Re and Im
 monte.transfer =	@(w,r,a0,r0) a0 + [1 1i]*w/2;
 % 1.368 converts t from dispersion units to interpolate into 0:17 ms
-monte.da =		@(a,~,r) dA(a, r, interp1(0:17, r.cfs', 1.368*r.t)');
+monte.da =		@(a,~,r) dA(a,r,r.cfs(:, 1));
 monte.linear =		@(D,r) 0.5*1i*(D.x.^2 + D.y.^2); 
 monte.step =		@xMP;
 monte.ranges =	[8.5/1.368 200 3];
