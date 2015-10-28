@@ -3,5 +3,9 @@
 *.pdf
 potentials
 *.npz
+*.h5
 *.mat
 *.eps
+runbo.o*
+runbo.e*
+xpsetup.m
