@@ -17,13 +17,13 @@ icond.dimension =	3;
 icond.fields =		1; 
 icond.ranges =		[tmax,200,6];
 icond.cfs =		cfs([1 2 3 5], :);  % quartics.  column i has coefs of [y^4 1 y^2 x^2] at t/ms = i-1
-icond.points =		[49 70 28];
+icond.points =		[99 70 28];
 icond.steps =		20*tmax;
 icond.step =		@nrmstp;
 icond.initial =		@(w,r) ones(size(r.x));
 icond.da =		@Da;
 icond.linear =		@(D,r) 0.5*(D.x.^2 + D.y.^2); 
-icond.ensembles =	[30 10 12];
+icond.ensembles =	[30 13 32];
 icond.images =		[0];
 icond.olabels =		{'<|\psi|^2>'};
 icond.file =	'BoseOut.mat';
@@ -86,7 +86,7 @@ monte.olabels{4} =		{'N'};
 monte.pdimension =	ones(size(monte.observe));
 
 if nargin == 0 || strcmp(task, 'compute')
-	parpool(12)
+	parpool(32)
 	xsim({icond, monte})
 end
 
