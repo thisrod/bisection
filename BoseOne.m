@@ -20,7 +20,7 @@ tmax = 5;
 icond.name =		'find ground state order parameter for the initial trap by imaginary time';
 icond.dimension =	3;
 icond.fields =		1; 
-icond.ranges =		[tmax 200 6];
+icond.ranges =		[tmax 200 3];
 icond.N =			7000;	% number of trapped atoms
 icond.cfs =		cfs([1 2 3 5], :);  % column i has coefs of [y^4 1 y^2 x^2] at t/ms = i-1
 % points(3) is even to ensure that all particles lie on a definite side of the trap with none on the centreline.
@@ -30,10 +30,10 @@ icond.step =		@nrmstp;
 icond.initial =		@(w,r) ones(size(r.x));
 icond.da =		@(a,~,r) -1i*dA(a,r,r.cfs(:, 1));
 icond.linear =		@(D,r) 0.5*(D.x.^2 + D.y.^2); 
-icond.ensembles =	[1 1 2];
-icond.images =		[0];
+icond.ensembles =	[30 4 32];
+icond.images =		[5];
 icond.olabels =		{'<|\psi|^2>'};
-icond.file =		'BoseOut.mat';
+icond.file =		'BoseHalfSplit.mat';
 
 monte = icond;
 monte.name =		'simulate Vienna trap splitting by truncated Wigner in two dimensions';
@@ -44,7 +44,7 @@ monte.transfer =	@(w,r,a0,r0) a0 + [1 1i]*w/2;
 monte.da =		@(a,~,r) dA(a, r, interp1(0:17, r.cfs', 1.368*r.t)');
 monte.linear =		@(D,r) 0.5*1i*(D.x.^2 + D.y.^2); 
 monte.step =		@xMP;
-monte.ranges =	[17/1.368 200 6];
+monte.ranges =	[8.5/1.368 200 3];
 monte.steps =		100;
 
 % Total number observables.
