@@ -1,1 +1,1 @@
-addpath /Users/rpolkinghorne/Downloads/XSPDE1.0/xSPDE/
+addpath ../xspde_matlab/XSPDE1.02/xSPDE
