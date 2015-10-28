@@ -1,72 +1,53 @@
 function BoseOne(task)                        %%name of main function
 
-% This script calls the trap axis x in order to plot 1D graphs along
-% it. The bisection axis is called y.  The graph labels match my thesis.
+% This function computes the observables, and saves them to a file
+% BoseOut_N.mat, where N is a serial number for the run of the
+% simuation. These results can be plotted with xgraph BoseOut_N.mat.
 
-% The intent is to call the function on the supercomputer to save an HDF file, then on a terminal to plot the graphs.  This is determined by the input argument: 'compute' generates data, 'plot' does graphs.  The default is to do both.
+% This version computes the total number observables only. The code to
+% compute the linear densities is in the tag prebranch. It might need to
+% be updated to the current version of XPDE.
 
+% The code calls the trap axis x in order to plot 1D graphs along
+% it. The bisection axis is called y. The graph labels match my thesis.
 
 icond.xlabels = {'t', 'z', 'x'};
 
-global cfs,  load cfs
+load cfs		% trap potential polynomials fitted by qrtfit.m
 
 tmax = 5;
 
-icond.name =		'two dimensional Vienna trap, imaginary time initial state';
+icond.name =		'find ground state order parameter for the initial trap by imaginary time';
 icond.dimension =	3;
 icond.fields =		1; 
-icond.ranges =		[tmax,200,6];
-icond.cfs =		cfs([1 2 3 5], :);  % quartics.  column i has coefs of [y^4 1 y^2 x^2] at t/ms = i-1
-icond.points =		[99 70 28];
+icond.ranges =		[tmax 200 6];
+icond.N =			7000;	% number of trapped atoms
+icond.cfs =		cfs([1 2 3 5], :);  % column i has coefs of [y^4 1 y^2 x^2] at t/ms = i-1
+% points(3) is even to ensure that all particles lie on a definite side of the trap with none on the centreline.
+icond.points =		[49 70 28];
 icond.steps =		20*tmax;
 icond.step =		@nrmstp;
 icond.initial =		@(w,r) ones(size(r.x));
-icond.da =		@Da;
+icond.da =		@(a,~,r) -1i*dA(a,r,r.cfs(:, 1));
 icond.linear =		@(D,r) 0.5*(D.x.^2 + D.y.^2); 
-icond.ensembles =	[30 13 32];
+icond.ensembles =	[1 1 2];
 icond.images =		[0];
 icond.olabels =		{'<|\psi|^2>'};
-icond.file =	'BoseOut.mat';
+icond.file =		'BoseOut.mat';
 
 monte = icond;
-rmfield(monte, 'file');
-monte.name =		'two dimensional Vienna trap splitting';
+monte.name =		'simulate Vienna trap splitting by truncated Wigner in two dimensions';
 monte.seed =		29101977;
 monte.randoms =	[2 0];	% Re and Im
 monte.transfer =	@(w,r,a0,r0) a0 + [1 1i]*w/2;
-monte.da =		@Db;
+% 1.368 converts t from dispersion units to interpolate into 0:17 ms
+monte.da =		@(a,~,r) dA(a, r, interp1(0:17, r.cfs', 1.368*r.t)');
 monte.linear =		@(D,r) 0.5*1i*(D.x.^2 + D.y.^2); 
 monte.step =		@xMP;
-monte.ranges =	[17/1.368,200,6];
+monte.ranges =	[17/1.368 200 6];
 monte.steps =		100;
 
-% monte.images =		[5 0 0 0 0 0 0];
-% monte.transverse =	[0 0 0 0 5 5 5];
-
-% monte.observe{1} =	@(a,r) abs(a).^2 - 1/(2*r.dV);
-% monte.olabels{1} =		{'n'};
-
-% monte.observe{2} =	@(a,r) angle(aone(a,r,+1));
-% monte.olabels{2} =		{'\phi_R'};
-
-% monte.observe{3} =	@(a,r) angle(aone(a,r,-1));
-% monte.olabels{3} =		{'\phi_L'};
-
-% monte.observe{4} =	@(a,r) angle(conj(aone(a,r,+1)).*aone(a,r,-1));
-% monte.olabels{4} =		{'\phi_-'};
-
-% % number correlation observables
-
-% monte.observe{5} =	@(a,r) dens(a,r,-1);
-% monte.olabels{5} =		{'n_l'};
-
-% monte.observe{6} =	@(a,r) dens(a,r,+1);
-% monte.olabels{6} =		{'n_r'};
-
-% monte.observe{7} =	@vnce;
-% monte.olabels{7} =		{':(n_r-n_l)^2:'};
-
-% Total number observables.  A significant number of particles lies at r.y==0; we don't count these, because there is no way to cleanly separate them when calculating the variance.
+% Total number observables.
 
 monte.observe{1} =	@(a,r)  xint((r.y<0).*(abs(a).^2-1/(2*r.dV)), r.dx, r);
 monte.olabels{1} =		{'N_l'};
@@ -85,63 +66,21 @@ monte.olabels{4} =		{'N'};
 
 monte.pdimension =	ones(size(monte.observe));
 
-if nargin == 0 || strcmp(task, 'compute')
-	parpool(32)
-	xsim({icond, monte})
-end
-
-if nargin == 0 || strcmp(task, 'plot')
-	xgraph('BoseOut.mat')
-end
+xsim({icond, monte})
 
 end	% function BoseOne
 
+
 function b = nrmstp(a,xi,dt,r)
+	% normalise the order parameter for imaginary time integration
 	b = xMP(a,xi,dt,r);
 	s = xint(abs(b).^2, r.dx, r);
-	b = sqrt(7000./s).*b;
+	b = sqrt(r.N./s).*b;
 end
 
-function o = dens(a,r,side)
-	m = r.dx;  m(2) = 0;	% IWRT y
-	I = (side*r.y<0).*(abs(a).^2-1/(2*r.dV));
-	o = xint(I, m, r);
-end
-
-function o = vnce(a,r)
-	m = r.dx;  m(2) = 0;	% IWRT y
-	I = sign(r.y).*(abs(a).^2-1/(2*r.dV));
-	II = (abs(a).^2-1/(4*r.dV))/r.dx(2);
-	o = xint(I, m, r).^2 - xint(II, m, r);
-end
-
-function f = aone(a,r,dn)
-	m = r.dx;
-	m(2) = 0;	% IWRT y
-	f = xint(a.*(dn*r.y > 0), m, r);
-end
-
-function c = crln(o,r,in)	% 1D autocorrelation
-	o = o(r.y == r.y(1));	% take a line from the plane
-	n = length(o);
-	c = toeplitz(o, [o(1) zeros(1, n-1)])' * o(:) * in.dx(2);
-	% FIXME: repeat with correct shape
-end
-
-% FIXME D.R.Y.
-
-function da  =  Da(a,~,r)
-	K = [r.y(:).^4 ones(size(r.x(:))) r.y(:).^2 r.x(:).^2]*r.cfs(:, 1);
-	K = reshape(K, size(r.x));
-	K = min(K, 100);		% trim unphysical part from quartic fit
-	da = -0.5*(K + 0.2255*abs(a).^2).*a;
-end
-
-function da  =  Db(a,~,r)
-	ts = (0:17)/1.368;
-	c = interp1(ts, r.cfs', r.t)';
+function da = dA(a,r,c)
 	K = [r.y(:).^4 ones(size(r.x(:))) r.y(:).^2 r.x(:).^2]*c;
 	K = reshape(K, size(r.x));
-	K = min(K, 100);		% trim unphysical part from quartic fit
+	K = min(K, 100);		% truncate unphysical part of quartic fit
 	da = -0.5*1i*(K + 0.2255*abs(a).^2).*a;
 end
