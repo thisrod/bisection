@@ -17,10 +17,10 @@ load cfs		% trap potential polynomials fitted by qrtfit.m
 
 tmax = 5;
 
-icond.name =		'find ground state order parameter for the initial trap by imaginary time';
+icond.name =		'find low-repulsion ground state order parameter for the initial trap';
 icond.dimension =	3;
 icond.fields =		1; 
-icond.ranges =		[tmax 200 3];
+icond.ranges =		[tmax 200 6];
 icond.N =			7000;	% number of trapped atoms
 icond.cfs =		cfs([1 2 3 5], :);  % column i has coefs of [y^4 1 y^2 x^2] at t/ms = i-1
 % points(3) is even to ensure that all particles lie on a definite side of the trap with none on the centreline.
@@ -33,18 +33,18 @@ icond.linear =		@(D,r) 0.5*(D.x.^2 + D.y.^2);
 icond.ensembles =	[30 4 32];
 icond.images =		[5];
 icond.olabels =		{'<|\psi|^2>'};
-icond.file =		'BoseHalfHold.mat';
+icond.file =		'BoseNull.mat';
 
 monte = icond;
-monte.name =		'simulate initial Vienna trap by truncated Wigner in two dimensions';
+monte.name =		'simulate Vienna trap splitting with low repulsion';
 monte.seed =		29101977;
 monte.randoms =	[2 0];	% Re and Im
 monte.transfer =	@(w,r,a0,r0) a0 + [1 1i]*w/2;
 % 1.368 converts t from dispersion units to interpolate into 0:17 ms
-monte.da =		@(a,~,r) dA(a,r,r.cfs(:, 1));
+monte.da =		@(a,~,r) dA(a, r, interp1(0:17, r.cfs', 1.368*r.t)');
 monte.linear =		@(D,r) 0.5*1i*(D.x.^2 + D.y.^2); 
 monte.step =		@xMP;
-monte.ranges =	[8.5/1.368 200 3];
+monte.ranges =	[17/1.368 200 6];
 monte.steps =		100;
 
 % Total number observables.
@@ -82,5 +82,5 @@ function da = dA(a,r,c)
 	K = [r.y(:).^4 ones(size(r.x(:))) r.y(:).^2 r.x(:).^2]*c;
 	K = reshape(K, size(r.x));
 	K = min(K, 100);		% truncate unphysical part of quartic fit
-	da = -0.5*1i*(K + 0.2255*abs(a).^2).*a;
+	da = -0.5*1i*(K + 0.02255*abs(a).^2).*a;
 end
