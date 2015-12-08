@@ -32,9 +32,13 @@ icond.da =		@(a,~,r) -1i*dA(a,r,r.cfs(:, 1));
 icond.linear =		@(D,r) 0.5*(D.x.^2 + D.y.^2); 
 icond.ensembles =	[2 1 1];
 icond.images =		[5];
-icond.observe =	@(a,r)  abs(a).^2;
-icond.olabels =		{'<|\psi|^2>'};
 icond.file =		'BoseOne.mat';
+
+icond.observe{1} =	@(a,r)  abs(a).^2;
+icond.olabels{1} =		{'<|\psi|^2>'};
+
+% icond.observe{2} =	@(a,r)  xint(abs(a).^2;
+% icond.olabels{2} =		{'<|\psi|^2>'};
 
 monte = rmfield(icond, 'observe');
 monte.name =		'simulate Vienna trap splitting';
@@ -80,8 +84,12 @@ function b = nrmstp(a,xi,dt,r)
 end
 
 function da = dA(a,r,c)
+	da = -0.5*1i*(potential(c,r) + 0.2255*abs(a).^2).*a;
+end
+
+function K = potential(c,r)
+	% sample quartic trap potential on grid
 	K = [r.y(:).^4 ones(size(r.x(:))) r.y(:).^2 r.x(:).^2]*c;
 	K = reshape(K, size(r.x));
 	K = min(K, 100);		% truncate unphysical part of quartic fit
-	da = -0.5*1i*(K + 0.2255*abs(a).^2).*a;
 end
