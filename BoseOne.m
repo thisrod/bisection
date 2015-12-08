@@ -32,10 +32,11 @@ icond.da =		@(a,~,r) -1i*dA(a,r,r.cfs(:, 1));
 icond.linear =		@(D,r) 0.5*(D.x.^2 + D.y.^2); 
 icond.ensembles =	[2 1 1];
 icond.images =		[5];
+icond.observe =	@(a,r)  abs(a).^2;
 icond.olabels =		{'<|\psi|^2>'};
-icond.file =		'BoseNull.mat';
+icond.file =		'BoseOne.mat';
 
-monte = icond;
+monte = rmfield(icond, 'observe');
 monte.name =		'simulate Vienna trap splitting';
 monte.seed =		29101977;
 monte.randoms =	[2 0];	% Re and Im
@@ -64,7 +65,7 @@ monte.olabels{3} =		{'<(N_r-N_l)^2>/<N_l+N_r>'};
 monte.observe{4} =	@(a,r)  xint((r.y~=0).*(abs(a).^2-1/(2*r.dV)), r.dx, r);
 monte.olabels{4} =		{'N'};
 
-monte.pdimension =	ones(size(monte.observe));
+monte.pdimension =	{1 1 1 1};
 
 xsim({icond, monte})
 
