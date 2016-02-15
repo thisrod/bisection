@@ -1,11 +1,11 @@
-function in = vienna(s)
+function in = vienna(s, varargin)
 % XMDS input structures and standard observables for 2D Vienna trap simulations.
 
 load cfs		% trap potential polynomials fitted by qrtfit.m
 
 switch s, case 'trap'
 
-in.name = 		'Vienna trap configuration';
+in.name = 		'Vienna trap splitting';
 in.dimension = 		3;
 in.xlabels = 		{'t', 'z', 'x'};
 in.ranges = 		[NaN 200 6];
@@ -21,17 +21,24 @@ in.da = 			@dA;
 in.linear = 		@(D,r) 0.5*1i*(D.x.^2 + D.y.^2);
 in.klabels = 		{'\omega', 'k_z', 'k_x'};
 in.points =		[49 70 28];
+in.steps =			30;
+
+case 'static'
+
+in = vienna('trap');
+t = varargin{1};	 c = interp1(in.c.tfs, in.c.cfs', 1.368*t)';
+in.name =			sprintf('Static Vienna trap t = %.1f', t);
+in.c.tfs =			[0 1e100];
+in.c.cfs =			[c c];
 
 case 'initial'
 
-in = vienna('trap');
+in = vienna('static', 0);
 in.name =			'Find ground state order parameter for initial trap';
 in.ranges(1) =		5;
 in.steps =			100;
 in.step =			@nrmstp;
 in.initial =			@(w,r) ones(size(r.x));
-in.c.tfs =			in.c.tfs([1 end]);
-in.c.cfs =			in.c.cfs(:, [1 1]);
 in.da =			@(a,w,r) -1i*dA(a,w,r);
 in.linear =			@(D,r) 0.5*(D.x.^2 + D.y.^2);
 
