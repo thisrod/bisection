@@ -17,7 +17,7 @@ in.c.tfs = 			0:17;
 in.c.cfs = 			cfs([1 2 3 5], :);
 in.c.K =			@potential;
 in.fields =			1;
-in.da = 			@dA;
+in.da = 			@(a,~,r) -0.5*1i*(r.c.K(r) + r.c.rpsn*abs(a).^2).*a;
 in.linear = 		@(D,r) 0.5*1i*(D.x.^2 + D.y.^2);
 in.klabels = 		{'\omega', 'k_z', 'k_x'};
 in.points =		[49 70 28];
@@ -45,7 +45,7 @@ in.ranges(1) =		5;
 in.steps =			100;
 in.step =			@nrmstp;
 in.initial =			@(w,r) ones(size(r.x));
-in.da =			@(a,w,r) -1i*dA(a,w,r);
+f = in.da; in.da = @(a,w,r) -1i*f(a,w,r);
 in.linear =			@(D,r) 0.5*(D.x.^2 + D.y.^2);
 
 case 'observables'
@@ -65,10 +65,6 @@ function b = nrmstp(a,xi,dt,r)
 	b = xMP(a,xi,dt,r);
 	s = xint(abs(b).^2, r.dx, r);
 	b = sqrt(r.c.N./s).*b;
-end
-
-function da = dA(a,~,r)
-	da = -0.5*1i*(r.c.K(r) + r.c.rpsn*abs(a).^2).*a;
 end
 
 function K = potential(r)
