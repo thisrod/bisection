@@ -13,6 +13,8 @@ out.transfer = @tfr;
 end
 
 function a = tfr(w,r,a0,r0)
+	% compute the Bogoliubov modes
+	% this only works for one sample
 	size(a0)
 	p = r.points,  g = r.ranges
 	Dxx = kron(eye(p(3)), ssd(p(2), g(2)));

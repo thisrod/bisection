@@ -4,7 +4,7 @@ vienna obervables
 order = vienna('initial');
 
 ground = bdv(order);
-ground = xinstrument(ground, 'n', 2);
+ground = xinstrument(ground, 'R', 2);
 
 xspde({order, ground})
 
