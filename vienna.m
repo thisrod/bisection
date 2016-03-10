@@ -23,6 +23,7 @@ in.klabels = 		{'\omega', 'k_z', 'k_x'};
 in.points =		[49 70 28];
 in.steps =			30;
 
+
 case 'static'
 
 in = vienna('trap');
@@ -30,6 +31,11 @@ t = varargin{1};	 c = interp1(in.c.tfs, in.c.cfs', 1.368*t)';
 in.name =			sprintf('Static Vienna trap t = %.1f', t);
 in.c.tfs =			[0 1e100];
 in.c.cfs =			[c c];
+
+case 'stub'
+
+in = rmfield(vienna('trap'), {'da' 'linear' 'steps'});
+in.points(1) = 2;  in.ranges(1) = 1;
 
 case 'initial'
 
