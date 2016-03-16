@@ -22,8 +22,14 @@ function a = tfr(t,w,r,a0,r0)
 	p = r.points;  g = r.ranges;
 	Dxx = kron(eye(p(3)), ssd(p(2), g(2)));
 	Dyy = kron(ssd(p(3), g(3)), eye(p(2)));
+	LAP = Dxx + Dyy;
 	NL = r.c.K(r) + 2*r.c.rpsn*abs(a0).^2 - M;
 	NL = diag(NL(:));
-	a = NL*a0.';
+	BdG = [-LAP+NL, -r.c.rpsn*diag(abs(a0).^2);
+		r.c.rpsn*diag(abs(a0).^2), LAP-NL];
+	tic; [ev,ew] = eig(BdG, 'vector'); toc
+
+	save debug.mat
+	a = LAP*a0.';
 	a = a.';
 end
