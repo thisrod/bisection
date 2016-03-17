@@ -23,13 +23,6 @@ in.klabels = 		{'\omega', 'k_z', 'k_x'};
 in.points =		[49 70 28];
 in.steps =			30;
 
-
-case 'static'
-
-in = vienna('trap');
-J = in.c.K;
-in.c.K = @(r) J(setfield(r, 't', varargin{1}));
-
 case 'stub'
 
 in = rmfield(vienna('trap'), {'da' 'linear' 'steps'});
@@ -37,7 +30,7 @@ in.points(1) = 2;  in.ranges(1) = 1;
 
 case 'initial'
 
-in = vienna('static', 0);
+in = vienna('trap');
 in = order(in, in.c.N, 0);
 in.ranges(1) =		5;
 in.steps =			100;

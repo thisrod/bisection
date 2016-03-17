@@ -3,6 +3,7 @@ function in = order(in, N, t)
 %
 % The user will add the duration of the imaginary time integration later as in.ranges(1).
 
+if nargin == 3, in = static(in, t); end
 in.name =	sprintf('Ground state order parameter with %d atoms for %s', N, in.name);
 in.step = @(a,xi,dt,r) nrmstp(a,xi,dt,r,N);
 in.initial = @(w,r) ones(size(r.x));
