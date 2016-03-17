@@ -1,4 +1,4 @@
-function Kohn()                        %%name of main function
+function Kohn()
 % vienna('observables')
 icond = vienna('initial');
 icond = xinstrument(icond, 'n', 5, 'K', @(t,in) 9, 'Vx');
@@ -14,4 +14,4 @@ kohn.steps = 150;
 
 xspde({icond, kohn})
 
-end	% function BoseOne
+end
