@@ -1,5 +1,5 @@
 function Kohn()                        %%name of main function
-vienna('obervables')
+% vienna('observables')
 icond = vienna('initial');
 icond = xinstrument(icond, 'n', 5, 'K', @(t,in) 9, 'Vx');
 

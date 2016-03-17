@@ -27,10 +27,8 @@ in.steps =			30;
 case 'static'
 
 in = vienna('trap');
-t = varargin{1};	 c = interp1(in.c.tfs, in.c.cfs', 1.368*t)';
-in.name =			sprintf('Static Vienna trap t = %.1f', t);
-in.c.tfs =			[0 1e100];
-in.c.cfs =			[c c];
+J = in.c.K;
+in.c.K = @(r) J(setfield(r, 't', varargin{1}));
 
 case 'stub'
 
@@ -40,13 +38,9 @@ in.points(1) = 2;  in.ranges(1) = 1;
 case 'initial'
 
 in = vienna('static', 0);
-in.name =			'Find ground state order parameter for initial trap';
+in = order(in, in.c.N, 0);
 in.ranges(1) =		5;
 in.steps =			100;
-in.step =			@nrmstp;
-in.initial =			@(w,r) ones(size(r.x));
-f = in.da; in.da = @(a,w,r) -1i*f(a,w,r);
-in.linear =			@(D,r) 0.5*(D.x.^2 + D.y.^2);
 
 case 'observables'
 
