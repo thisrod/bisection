@@ -5,7 +5,7 @@ load cfs		% trap potential polynomials fitted by qrtfit.m
 
 switch s, case 'trap'
 
-in.name = 		'Vienna trap splitting';
+in.name = 		'Vienna split trap';
 in.ranges = 		[NaN 200 6];
 in.xlabels = 		{'t', 'z', 'x'};
 in.c.N = 			7000;
