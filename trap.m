@@ -17,9 +17,12 @@ end
 in.a = offer(in.a, 'K', @(r) zeros(r.d.a));
 
 LAPs = {@(D,r) D.x.^2, @(D,r) D.x.^2 + D.y.^2, @(D,r) D.x.^2 + D.y.^2 + D.z.^2};
-in.a.LAP = LAPs(in.dimension - 1);
+in.a.LAP = LAPs{in.dimension - 1};
+in.a.NL = @(a,~,r) (r.a.K(r) + r.a.g*abs(a).^2).*a;
 
-in.linear = @(D,r) 0.5*1i*in.a.LAP(D,r);
+in.linear = @(D,r) 0.5i*in.a.LAP(D,r);
+in.da = @(a,w,r) -0.5i*in.a.NL(a,w,r);
+
 
 end
 
