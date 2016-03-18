@@ -3,21 +3,18 @@ function in = trap(in)
 %
 % Potential defaults to free atoms
 
-if isfield(in, 'ranges'), in = make(in, 'dimension', length(in.ranges)); end
+in = make(in, 'dimension', length(in.ranges), 'ranges');
 assert(in.dimension > 1 && in.dimension < 5);
 in = make(in, 'fields', 1);
-
 in = offer(in, 'a', struct);
 
 % deduce K and g from provided parameters
-data = [in.dimension isfield(in.a, {'g', 'gamma'})];
-if data == [2 false true]
-	in.a = make(in.a, 'g', 2*in.a.gamma);
-	in.a = rmfield(in.a, 'gamma');
+if in.dimension == 2
+	in.a = make(in.a, 'g', 2*in.a.gamma, 'gamma');
 end
 
 % potential defaults to free atoms
-in.a = offer(in.a, 'K', @(r) zeros(r.d.a), 'g', 'LAP');
+in.a = offer(in.a, 'K', @(r) zeros(r.d.a));
 
 LAPs = {@(D,r) D.x.^2, @(D,r) D.x.^2 + D.y.^2, @(D,r) D.x.^2 + D.y.^2 + D.z.^2};
 in.a.LAP = LAPs(in.dimension - 1);
