@@ -3,15 +3,21 @@ function in = trap(in)
 %
 % Potential defaults to free atoms
 
+if isfield(in.a, 'gamma'), in = make(in, 'dimension', 2); end
+in = offer(in, 'ranges', repmat(nan, 1, in.dimension), 'dimension');
 in = make(in, 'dimension', length(in.ranges), 'ranges');
+if all(isfield(in.a, {'gamma', 'N'})) && isnan(in.ranges(2))
+	in.ranges(2) = in.a.N;
+end
+
+
 assert(in.dimension > 1 && in.dimension < 5);
 in = make(in, 'fields', 1);
 in = offer(in, 'a', struct);
 
-% deduce K and g from provided parameters
-if in.dimension == 2
-	in.a = make(in.a, 'g', 2*in.a.gamma, 'gamma');
-end
+% remaining Lieb-Linniger deductions
+in.a = make(in.a, 'g', 2*in.a.gamma, 'gamma');
+offer(in.a, 'N', in.ranges(2), 'gamma');
 
 % potential defaults to free atoms
 in.a = offer(in.a, 'K', @(r) zeros(r.d.a));
