@@ -6,22 +6,22 @@ load cfs		% trap potential polynomials fitted by qrtfit.m
 switch s, case 'trap'
 
 in.name = 		'Vienna trap splitting';
-in.dimension = 		3;
-in.xlabels = 		{'t', 'z', 'x'};
 in.ranges = 		[NaN 200 6];
+in.xlabels = 		{'t', 'z', 'x'};
 in.c.N = 			7000;
 in.c.y0 = 			0.235;
 in.c.x0 = 			3.3;
-in.c.rpsn = 		0.2255;
+in.a.g = 			0.2255;
 in.c.tfs = 			0:17;
 in.c.cfs = 			cfs([1 2 3 5], :);
-in.c.K =			@potential;
+in.a.K =			@potential;
 in.fields =			1;
-in.da = 			@(a,~,r) -0.5*1i*(r.c.K(r) + r.c.rpsn*abs(a).^2).*a;
-in.linear = 		@(D,r) 0.5*1i*(D.x.^2 + D.y.^2);
+% in.da = 			@(a,~,r) -0.5*1i*(r.c.K(r) + r.c.rpsn*abs(a).^2).*a;
+% in.linear = 		@(D,r) 0.5*1i*(D.x.^2 + D.y.^2);
 in.klabels = 		{'\omega', 'k_z', 'k_x'};
 in.points =		[49 70 28];
 in.steps =			30;
+in = trap(in);
 
 case 'stub'
 
@@ -39,7 +39,7 @@ case 'observables'
 
 obs = { ...
 	'flag', 'olabels', 'observe', 'transforms', 'pdimension', 'description'; ...
-	'K', '<K^2>/N', @(a,r) xint(abs(a).^2.*r.c.K(r), r.dx, r)/r.c.N, [], {1}, 'trap potential energy'; ...
+	'K', '<K^2>/N', @(a,r) xint(abs(a).^2.*r.a.K(r), r.dx, r)/r.c.N, [], {1}, 'trap potential energy'; ...
 	'V', '<V>/N', @(a,r)  xint(0.2255*abs(a).^4, r.dx, r)/r.c.N, [], 1, 'repulsion energy' ...
 };
 xinstrument(cell2table(obs(2:end,2:end), 'VariableNames', obs(1,2:end), 'RowNames', obs(2:end,1)));
