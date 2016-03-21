@@ -39,8 +39,8 @@ case 'observables'
 
 obs = { ...
 	'flag', 'olabels', 'observe', 'transforms', 'pdimension', 'description'; ...
-	'K', '<K^2>/N', @(a,r) xint(abs(a).^2.*r.a.K(r), r.dx, r)/r.c.N, [], {1}, 'trap potential energy'; ...
-	'V', '<V>/N', @(a,r)  xint(0.2255*abs(a).^4, r.dx, r)/r.c.N, [], 1, 'repulsion energy' ...
+	'K', '<K^2>/N', @(a,r) xint(abs(a).^2.*r.a.K(r), r.dx, r)/r.a.N, [], {1}, 'trap potential energy'; ...
+	'V', '<V>/N', @(a,r)  xint(0.2255*abs(a).^4, r.dx, r)/r.a.N, [], 1, 'repulsion energy' ...
 };
 xinstrument(cell2table(obs(2:end,2:end), 'VariableNames', obs(1,2:end), 'RowNames', obs(2:end,1)));
 
@@ -51,7 +51,7 @@ function b = nrmstp(a,xi,dt,r)
 	% normalise the order parameter for imaginary time integration
 	b = xMP(a,xi,dt,r);
 	s = xint(abs(b).^2, r.dx, r);
-	b = sqrt(r.c.N./s).*b;
+	b = sqrt(r.a.N./s).*b;
 end
 
 function K = potential(r)
