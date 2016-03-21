@@ -1,14 +1,19 @@
 % one dimensional BEC pair correlations
 
-clear free
-free.name = 'free bosons in one dimension';
-free.a.gamma = 1e3;
-free.a.N = 1e5;
-free = trap(free);
+clear system gsop
 
-ground = order(free, 1e5);
-ground.ranges(1) = 0.5;
-ground.points = [49 70];
-ground.steps = 30;
-ground = xinstrument(ground, 'n', 'N', 1e5);
-xspde(ground)
+system.name = 'free gas in one dimension';
+system.a.gamma = 1e3;
+system.a.N = 1e5;
+system = trap(system);
+
+gsop = order(system, 1e5);
+gsop.ranges(1) = 0.5;
+gsop.points = [49 70];
+gsop.steps = 30;
+gsop = xinstrument(gsop, 'n', 'N', @(~,~) 1e5);
+
+ground = bdg(system, 0);
+
+
+xspde({gsop, ground})
