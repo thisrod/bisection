@@ -11,7 +11,7 @@ gsop = order(system, 1e5);
 gsop.ranges(1) = 0.5;
 gsop.points = [49 70];
 gsop.steps = 30;
-gsop = xinstrument(gsop, 'n', 'N', 'T', 'K', 'V');
+gsop = xinstrument(gsop, 'n', 'N', 'T', 'K', 'V', @(~,in) in.a.g);
 
 ground = system;
 ground.ranges(1) = 0.5;
