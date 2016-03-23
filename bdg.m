@@ -17,7 +17,6 @@ end
 function b = tfr(t,w,r,a0,r0)
 	% compute Bogoliubov modes
 	r.t = t;
-	size(a0)
 	a = squeeze(a0);  a = a(:);
 
 % Stub of 2D version
@@ -26,15 +25,15 @@ function b = tfr(t,w,r,a0,r0)
 %	Dyy = kron(ssd(p(3), g(3)), eye(p(2)));
 %	LAP = Dxx + Dyy;
 %	mu = 6.75 + 16.6 + 19.5;
-	% kludge, read from graphs.
-	LAP = ssd(r.points(2), r.ranges(2));  mu = 0;
-	size(r.a.K(r)), size(abs(a).^2)
-	K = diag(r.a.K(r)) - mu + diag(2*r.a.g*abs(a).^2);
+	mu = 1971.4285;
+	% kludge, read from graph of V.
+	LAP = ssd(r.points(2), r.ranges(2));
+	K = diag(r.a.K(r) - mu) + diag(2*r.a.g*abs(a).^2);
 	BdG = [-LAP+K, -r.a.g*diag(a.^2);
 		r.a.g*diag(conj(a).^2), LAP-K];
 	% project onto space orthogonal to a0
-	U = qr([a eye(numel(a), numel(a)-1)]);  U = U(:, 2:end);
-	U = kron(eye(2), U);
+	[U1,~] = qr([a eye(numel(a), numel(a)-1)]);  U1 = U1(:, 2:end);
+	U = kron(eye(2), U1);
 	tic; [ev,ew] = eig(U'*BdG*U, 'vector'); toc
 
 	save debug.mat
