@@ -30,6 +30,7 @@ legend('\mu discrep.', 'K')
 figure, plot(sw, '.k'), title('laplacian eigenvalues')
 figure, imagesc(sv), colormap gray, title('laplacian eigenvectors')
 
-[sv,sw] = eig(-U1'*LAP*U1, 'vector');
-figure, plot(real(sw), '.k'), title('orthogonal laplacian eigenvalues')
-figure, imagesc(real(U1*sv)), colormap gray, title('orthogonal laplacian eigenvectors')
+[osv,osw] = eig(-U1'*LAP*U1, 'vector');
+[~, i] = sort(abs(osw));  osw = osw(i);  osv = osv(:,i);
+figure, plot(real(osw), '.k'), title('orthogonal laplacian eigenvalues')
+figure, imagesc(real(U1*osv)), colormap gray, title('orthogonal laplacian eigenvectors')
