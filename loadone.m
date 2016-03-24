@@ -13,6 +13,11 @@ buv = reshape(bmod,gs,2,[]);
 figure, plot(r.x, LAP*a, r.x, K*a, r.x, r.a.g*diag(a.^2)*a)
 
 figure, semilogy(abs(ew), '.k'), title Eigenvalues
+% w = ck, k is around n/4L, healing length is (2*gamma)^{-1/2} in LL normalisation
+% CHECKME
+n = 1:length(ew);
+hold on, plot(n, (n-2)*sqrt(r.a.gamma)/(4*r.ranges(2)), '-k')
+legend computed sound Location SouthEast
 
 figure, imagesc(bmod), colormap gray, title Eigenvectors
 
