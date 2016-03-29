@@ -27,7 +27,7 @@ function b = tfr(t,w,r,a0,r0)
 %	mu = 6.75 + 16.6 + 19.5;
 	mu = 1971.4285;
 	% kludge, read from graph of V.
-	LAP = ssd(r.points(2), r.ranges(2));
+	LAP = ssd(r.points(2), r.ranges(2)/2);
 	K = diag(r.a.K(r) - mu) + diag(2*r.a.g*abs(a).^2);
 	BdG = [-LAP+K, -r.a.g*diag(a.^2);
 		r.a.g*diag(conj(a).^2), LAP-K];
