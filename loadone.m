@@ -31,13 +31,7 @@ figure, semilogy(nms, '.k'), title 'Eigenvector norms'
 figure, plot(r.x, r.a.g*a.^2-mu, '-k', r.x, r.a.K(r), '-r')
 legend('\mu discrep.', 'K')
 
-figure
 k1 = 2*pi/L;
-plot(r.x, sin(k1*r.x'), '-k', r.x, -k1^-2*LAP*sin(k1*r.x'), '--r')
-hold on, k1 = 10*k1;
-plot(r.x, sin(k1*r.x'), '-k', r.x, -k1^-2*LAP*sin(k1*r.x'), '--r')
-plot(r.x, 
-title 'sine waves reproduced with spectral Laplacian'
 
 [sv,sw] = eig(-LAP, 'vector');
 n = 1:length(sw);  k = k1*n/2;
@@ -50,5 +44,15 @@ figure, plot(real(osw), '.k'), title('orthogonal laplacian eigenvalues')
 figure, imagesc(real(U1*osv)), colormap gray, title('orthogonal laplacian eigenvectors')
 
 figure
-plot(r.x, sv(:,2:3), '-k', r.x, -100*k1^-2*LAP*sv(:,2:3), '--r')
-title 'numerical laplacian eigenvectors x100'
+k1 = 2*pi/L;  k2 = 10*k1;
+plot(r.x, sin(k1*r.x'), '-k', r.x, -k1^-2*LAP*sin(k1*r.x'), '--r')
+hold on, 
+plot(r.x, sin(k2*r.x'), '-k', r.x, -k2^-2*LAP*sin(k2*r.x'), '--r')
+title 'sine waves reproduced with spectral Laplacian'
+
+figure
+plot(r.x, sv(:,2:3), '-k', r.x, -k1^-2*LAP*sv(:,2:3), '--r', r.x, -LAP*sv(:,2:3)/sw(2), ':b')
+title 'numerical laplacian eigenvectors'
+
+figure, plot(max(abs(LAP*sv(:,2:end)/diag(sw(2:end))+sv(:,2:end))), '.k')
+title 'Laplacian eigenproblem residuals'
