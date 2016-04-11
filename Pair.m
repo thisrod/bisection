@@ -4,8 +4,7 @@ clear system gsop
 
 system.name = 'free gas in one dimension';
 system.a.gamma = 1e3;
-% system.a.N = 1e5;
-system.a.N = 73;
+system.a.N = 1e5;
 system = trap(system);
 
 gsop = order(system, 1e5);
@@ -19,5 +18,5 @@ ground.ranges(1) = 0.5;
 ground.points = [49 70];
 ground = bdg(ground, 0);
 
-xspde(gsop)
-% xspde({gsop, ground})
+% xspde(gsop)
+xsim({gsop, ground})

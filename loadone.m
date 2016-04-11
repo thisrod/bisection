@@ -12,6 +12,14 @@ fprintf('Imaginary fraction of eigen-\n     values: %.2e\n     vectors: %.2e\n\n
 	norm(imag(ew)) / norm(ew), ...
 	norm(imag(ev), 'fro') / norm(ev, 'fro'))
 
+ixs = abs(real(ew)) > abs(imag(ew));
+ewr = ew(ixs);  [~,j] = sort(abs(ewr));  ewr = ewr(j);
+ewi = ew(~ixs);  [~,j] = sort(abs(ewi), 'descend');  ewi = ewi(j);
+figure, plot(real([ewi; ewr]), '.k'), hold on, plot(imag([ewi; ewr]), '.r')
+title(sprintf('Re and Im of ew, mu = %.8f', mu))
+
+return
+
 assert(norm(imag(ew)) / norm(ew) < 1e-5), ew = real(ew);
 pew = ew(ew>0);  new = ew(ew<0);
 fprintf('Mismatch between +ive and -ive eigenvalues: %.2e\n\n', ...
@@ -74,12 +82,23 @@ rsdl = sqrt(sum(abs(BdG*bmod-bmod*diag(ew)).^2));
 ix = 1:numel(ew);  iy = ix(ew>0);  iz = ix(ew<0);
 figure, semilogy(rsdl, '.k'), title 'Residuals of eigenvalue problem'
 
-nms = squeeze(min(sqrt(sum(abs(reshape(buv, prod(gs), 2, []).^2)))));
-figure, semilogy(nms, '.k'), title 'Eigenvector norms'
+nms = squeeze(sqrt(2*sum(abs(buv).^2)));
+figure, plot(n, nms(1,:), '.k', n, nms(2,:), '.r'), legend u v
+title '1D Bogoliubov coefficients'
+
+u1 = squeeze(buv(:,1,1));  v1 = squeeze(buv(:,2,1));
+figure, subplot 311, plot(r.x, u1, '-k', r.x, v1, '-r')
+title('Lowest BdG u and v modes')
+subplot 312, plot(r.x, -LAP*u1, r.x, r.a.K(r)'.*u1, r.x, -mu*u1, ...
+	r.x, 2*r.a.g*a.^2.*u1, r.x, -r.a.g*a.^2.*v1)
+legend lap trap mu self other 
+subplot 313, plot(r.x, (-Bself+M)*u1+Bother*v1, ':k', r.x, ew(1)*u1, '--k')
+title 'BdG equation CHECKME', legend LHS '\epsilon u_1'
 
 figure, plot(r.x, r.a.g*a.^2-mu, '-k', r.x, r.a.K(r), '-r')
 legend('\mu discrep.', 'K')
 
+return
 
 
 [sv,sw] = eig(-LAP, 'vector');
