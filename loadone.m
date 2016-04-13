@@ -18,8 +18,6 @@ ewi = ew(~ixs);  [~,j] = sort(abs(ewi), 'descend');  ewi = ewi(j);
 figure, plot(real([ewi; ewr]), '.k'), hold on, plot(imag([ewi; ewr]), '.r')
 title(sprintf('Re and Im of ew, mu = %.8f', mu))
 
-return
-
 assert(norm(imag(ew)) / norm(ew) < 1e-5), ew = real(ew);
 pew = ew(ew>0);  new = ew(ew<0);
 fprintf('Mismatch between +ive and -ive eigenvalues: %.2e\n\n', ...
@@ -65,12 +63,12 @@ bmod = real(bmod);  buv = real(buv);  ev = real(ev);
 
 % figure, plot(r.x, LAP*a, r.x, K*a, r.x, r.a.g*diag(a.^2)*a)
 
-figure, subplot 211, plot(ew, '.k'), title('computed and expected BdG eigenvalues')
+figure, plot(ew, '.k'), title('computed and expected BdG eigenvalues')
 % w = ck, k is around n/2L, healing length is (2*gamma)^{-1/2} in LL normalisation
 % FIXME include ordinary energy
 n = 1:length(ew);  L = r.ranges(2);  L = L*gs/(gs-1);
 k1 = 2*pi/L;  k = k1*n/2;  heal = 1/sqrt(2*r.a.gamma);
-subplot 212, plot(n, k.*sqrt(heal.^-2+k.^2), '-k')
+hold on, plot(n, k.*sqrt(heal.^-2+k.^2), '-k')
 % plot(n, (n-2)*sqrt(r.a.gamma)/(4*L), '-k')
 
 figure, subplot 211, imagesc(squeeze(buv(:,1,:))), title 'BdG u modes'
@@ -83,8 +81,9 @@ ix = 1:numel(ew);  iy = ix(ew>0);  iz = ix(ew<0);
 figure, semilogy(rsdl, '.k'), title 'Residuals of eigenvalue problem'
 
 nms = squeeze(sqrt(2*sum(abs(buv).^2)));
+nms = nms - 1;
 figure, plot(n, nms(1,:), '.k', n, nms(2,:), '.r'), legend u v
-title '1D Bogoliubov coefficients'
+title '1D Bogoliubov coefficients minus 1'
 
 u1 = squeeze(buv(:,1,1));  v1 = squeeze(buv(:,2,1));
 figure, subplot 311, plot(r.x, u1, '-k', r.x, v1, '-r')

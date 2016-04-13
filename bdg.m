@@ -26,7 +26,8 @@ function b = tfr(t,w,r,a0,r0)
 %	LAP = Dxx + Dyy;
 
 	% see am.pdf an.pdf ao.pdf
-	mu = 1971.42857143;
+	% mu = 1971.42857143;
+	mu = 1971.42857142858;	% from r.a.g*a.^2
 	
 	% Eigenvalues become imaginary when mu gets high enough for the phonon spectrum to become linear
 
