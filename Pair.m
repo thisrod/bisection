@@ -1,12 +1,12 @@
 % one dimensional BEC pair correlations
 
-clear system gsop
+clear system gsop coherent 
 
 system.name = 'free gas in one dimension, 70 modes';
 system.a.gamma = 1e3;
 system.a.N = 1e5;
 system.points = [nan 70];
-system.ensembles = 1e3;
+system.ensembles = [1 1 1];
 system = trap(system);
 
 gsop = order(system, 1e5);
@@ -17,8 +17,8 @@ gsop.steps = 30;
 gsop = xinstrument(gsop, 'N');
 
 coherent = twop(static(system, 0));
-coherent = xinstrument(coherent, 'N', @(~,in) in.a.N + in.points(2)/2, 'Re', 'Im');
+coherent = xinstrument(coherent, 'ntw', 'g2tw');
 ground = bdg(system, 0);
 
 % xspde(gsop)
-xspde({gsop, coherent})
+xspde({gsop, ground})

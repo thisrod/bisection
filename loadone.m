@@ -1,8 +1,6 @@
 % load free gas modes
 
-load debug.mat
-
-gs = r.points(2);
+load debug1.mat
 
 assert(isa(U, 'double'))
 
@@ -46,6 +44,8 @@ for i = 1:2:length(ixodd)
 	bmod(:,ix+1) = bmod(:,ix+1) / norm(bmod(:,ix+1));
 end
 buv = reshape(bmod,gs,2,[]);
+
+load debug2.mat
 
 fprintf('non-orthonormality of corrected eigenvectors: %.2e\n', ...
 	norm(bmod'*bmod-eye(gs-1), 'fro'))
