@@ -37,7 +37,7 @@ function b = tfr(t,w,r,a0,r0)
 	M = mu*eye(r.points(2));
 	Bother = diag(r.a.g*abs(a).^2);
 	Bself = -LAP + diag(r.a.K(r)) + 2*Bother;
-	BdG = [-Bself+M, Bother; -Bother, Bself-M];
+	BdG = [Bself-M, -Bother; Bother, -Bself+M];
 	% project onto space orthogonal to a0
 	[U1,~] = qr([a eye(numel(a), numel(a)-1)]);  U1 = U1(:, 2:end);
 	U = kron(eye(2), U1);
@@ -65,7 +65,7 @@ function b = tfr(t,w,r,a0,r0)
 	% separate u and v modes, then normalise
 	buv = reshape(bmod,gs,2,[]);
 	c = r.dV*sum(abs(buv(:,1,:)).^2 - abs(buv(:,2,:)).^2);
-	c = 1./sqrt(-c);
+	c = 1./sqrt(c);
 	buv = buv.*repmat(c,gs,2,1);
 	
 	save debug2.mat

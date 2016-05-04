@@ -80,10 +80,9 @@ rsdl = sqrt(sum(abs(BdG*bmod-bmod*diag(ew)).^2));
 ix = 1:numel(ew);  iy = ix(ew>0);  iz = ix(ew<0);
 figure, semilogy(rsdl, '.k'), title 'Residuals of eigenvalue problem'
 
-nms = squeeze(sqrt(2*sum(abs(buv).^2)));
-nms = nms - 1;
+nms = sqrt(r.dV*sum(abs(buv).^2));  nms = squeeze(nms);
 figure, plot(n, nms(1,:), '.k', n, nms(2,:), '.r'), legend u v
-title '1D Bogoliubov coefficients minus 1'
+title 'Norms of sound wave modes'
 
 u1 = squeeze(buv(:,1,1));  v1 = squeeze(buv(:,2,1));
 figure, subplot 311, plot(r.x, u1, '-k', r.x, v1, '-r')
