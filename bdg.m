@@ -17,7 +17,7 @@ for s = {'dimension', 'fields', 'ranges', 'c', 'a', 'points'}
 end
 
 out.points(1) = 2;  out.ranges(1) = 1;
-out.fields = 3*prod(out.points(2:end));
+out.fields = 3*prod(out.points(2:end)) - 3;
 out.transfer = @tfr;
 
 end
@@ -74,8 +74,8 @@ function b = tfr(w,r,a0,r0)
 	c = r.dV*sum(abs(buv(:,1,:)).^2 - abs(buv(:,2,:)).^2);
 	c = 1./sqrt(c);
 	buv = buv.*repmat(c,gs,2,1);
+
+	b = [repmat(ew, 1, r.nspace); squeeze(buv(:,1,:))'; squeeze(buv(:,2,:))'];
 	
 	save debug2.mat
-
-	b = w;
 end
