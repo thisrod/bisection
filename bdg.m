@@ -4,9 +4,9 @@ function out = bdg(in)
 %   BDG(in) takes an XPDE input structure in of the form returned by
 %   STATIC. It returns a similar input structure. This structure runs
 %   after the equilibrium order parameter has been computed. It outputs a
-%   field with 3*nspace components. Components 1:nspace are the positive
-%   BdG eigenvalues, nspace+1:2*nspace are the u modes, and the rest are
-%   the v modes.
+%   field with 3*(nspace-1) components. Components 1:nspace-1 are the positive
+%   BdG eigenvalues, nspace+1:2*(nspace-1) are the u modes, and the rest are
+%   the v modes.  The missing mode is the ground state.
 %
 %   See also GROUND.
 
@@ -17,6 +17,7 @@ for s = {'dimension', 'fields', 'ranges', 'c', 'a', 'points'}
 end
 
 out.points(1) = 2;  out.ranges(1) = 1;
+out.fields = 3*prod(out.points(2:end));
 out.transfer = @tfr;
 
 end
@@ -39,10 +40,10 @@ function b = tfr(w,r,a0,r0)
 	mu = 1971.42857142858;	% from r.a.g*a.^2
 
 	LAP = ssd(r.points(2), r.ranges(2)/2);
-	K = diag(r.a.K(r) - mu) + diag(2*r.a.g*abs(a).^2);
+	K = diag(r.a.K(r0) - mu) + diag(2*r.a.g*abs(a).^2);
 	M = mu*eye(r.points(2));
 	Bother = diag(r.a.g*abs(a).^2);
-	Bself = -LAP + diag(r.a.K(r)) + 2*Bother;
+	Bself = -LAP + diag(r.a.K(r0)) + 2*Bother;
 	BdG = [Bself-M, -Bother; Bother, -Bself+M];
 	% project onto space orthogonal to a0
 	[U1,~] = qr([a eye(numel(a), numel(a)-1)]);  U1 = U1(:, 2:end);
@@ -76,5 +77,5 @@ function b = tfr(w,r,a0,r0)
 	
 	save debug2.mat
 
-	b = LAP*a;
+	b = w;
 end
