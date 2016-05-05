@@ -18,6 +18,7 @@ end
 
 out.points(1) = 2;  out.ranges(1) = 1;
 out.fields = 3*prod(out.points(2:end)) - 3;
+out.observe = {};
 out.transfer = @tfr;
 
 end
