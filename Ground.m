@@ -8,4 +8,6 @@ function out = ground(in)
 %
 %   See also BDG.
 
+% in.a.T is the condensate temperature, expressed as a square wavenumber in dispersion units.
+
 end

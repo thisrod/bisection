@@ -21,4 +21,4 @@ coherent = xinstrument(coherent, 'ntw', 'g2tw');
 ground = bdg(system);
 
 % xspde(gsop)
-xspde({gsop, ground})
+[~, ~, rslt] = xspde({gsop, ground});

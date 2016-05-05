@@ -49,9 +49,9 @@ xinstrument(cell2table(obs(2:end,2:end), 'VariableNames', obs(1,2:end), 'RowName
 end, end	% function vienna
 
 
-function b = nrmstp(a,xi,dt,r)
+function b = nrmstp(a,xi,r)
 	% normalise the order parameter for imaginary time integration
-	b = xMP(a,xi,dt,r);
+	b = xMP(a,xi,r);
 	s = xint(abs(b).^2, r.dx, r);
 	b = sqrt(r.a.N./s).*b;
 end

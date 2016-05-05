@@ -9,6 +9,8 @@ function out = bdg(in)
 %   the v modes.  The missing mode is the ground state.
 %
 %   See also GROUND.
+%
+%   New interface plan: take a static trap, run order, configure an XPDE structure that is annotated with the modes, and whose initial function draws Wigner samples.  The driver script sets ensembles and launches xspde again.
 
 
 out.name = 'Bogoliubov initial state';
