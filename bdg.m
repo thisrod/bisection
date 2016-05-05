@@ -1,9 +1,15 @@
 function out = bdg(in)
-%BDG     XPDE input structure for Bogoliubov ground states
+%BDG     XPDE structure to find Bogoliubov sound wave modes
 %
-%   BDG(in)  does ...
+%   BDG(in) takes an XPDE input structure in of the form returned by
+%   STATIC. It returns a similar input structure. This structure runs
+%   after the equilibrium order parameter has been computed. It outputs a
+%   field with 3*nspace components. Components 1:nspace are the positive
+%   BdG eigenvalues, nspace+1:2*nspace are the u modes, and the rest are
+%   the v modes.
 %
-%   If in.a.K requires r.t to be bound, it will be necessary to call static to fix that.
+%   See also GROUND.
+
 
 out.name = 'Bogoliubov initial state';
 for s = {'dimension', 'fields', 'ranges', 'c', 'a', 'points'}
