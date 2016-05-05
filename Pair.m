@@ -18,7 +18,7 @@ gsop = xinstrument(gsop, 'N');
 
 coherent = twop(static(system, 0));
 coherent = xinstrument(coherent, 'ntw', 'g2tw');
-ground = bdg(system, 0);
+ground = bdg(system);
 
 % xspde(gsop)
 xspde({gsop, ground})

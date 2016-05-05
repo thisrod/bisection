@@ -1,24 +1,24 @@
-function out = bdg(in,t)
+function out = bdg(in)
 %BDG     XPDE input structure for Bogoliubov ground states
-% For now, set the field to the lagrangian of the input field.
+%
+%   BDG(in)  does ...
+%
+%   If in.a.K requires r.t to be bound, it will be necessary to call static to fix that.
 
 out.name = 'Bogoliubov initial state';
 for s = {'dimension', 'fields', 'ranges', 'c', 'a', 'points'}
 	if isfield(in, s{1}), out.(s{1}) = in.(s{1}); end
 end
 
-% TODO: get rid of t arguments, call static if K uses r.t
-
 out.points(1) = 2;  out.ranges(1) = 1;
-out.transfer = @(w,r,a0,r0) tfr(t,w,r,a0,r0);
+out.transfer = @tfr;
 
 end
 
-function b = tfr(t,w,r,a0,r0)
+function b = tfr(w,r,a0,r0)
 	!rm -f debug1.mat debug2.mat
 
 	% compute Bogoliubov modes
-	r.t = t;
 	a = squeeze(a0);  a = a(:);
 	gs = r.points(2);
 
