@@ -2,6 +2,15 @@ function in = trap(in)
 %TRAP	Initialise an XPDE structure for an atom trap
 %
 % Potential defaults to free atoms
+%
+% The fields of in.a are as follows.  Various atom trap functions compute these and add them as annotations.
+%
+% a.op	equilibrium order parameter
+% a.N	number of atoms in the field
+% a.gamma	Lieb-Linniger parameter
+% a.bew	sound wave eigenfrequencies
+% a.U	sound wave U modes
+% a.V	sound wave V modes
 
 if isfield(in.a, 'gamma'), in = ensure(in, 'dimension', 2); end
 in = offer(in, 'ranges', @() NaN(1, in.dimension), 'dimension');
