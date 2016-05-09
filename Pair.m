@@ -9,7 +9,7 @@ system.points = [nan 70];
 system.ensembles = [1 1 1];
 system = trap(system);
 
-gsop = order(system, 1e5);
+gsop = order(static(system, 0));
 gsop.ranges(1) = 0.5;
 gsop.points(1) = 49;
 gsop.steps = 30;

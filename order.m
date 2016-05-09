@@ -1,13 +1,11 @@
-function in = order(in, N, t)
+function in = order(in)
 %ORDER	Transform an atomic trap structure to find its ground state order parameter
 %
-%    out = ORDER(in, N, t) computes the order parameter for N atoms in the trap potential at time t
+%    out = ORDER(in) computes the equilibrium order parameter the trap potential of in.  This should be a static potential, and in.a.N must be set to the number of atoms.
 %
-%    out = ORDER(in, N) assumes the trap potential is constant
-%
-% The user will add the duration of the imaginary time integration later as in.ranges(1).
+% The user must add the duration of the imaginary time integration as in.ranges(1).  This can be done before or after the call to order.
 
-if nargin == 3, in = static(in, t); end
+N = in.a.N;
 in.name =	sprintf('Ground state order parameter with %d atoms for %s', N, in.name);
 in.step = @(a,xi,r) nrmstp(a,xi,r,N);
 in.initial = @(w,r) ones(size(r.x));
