@@ -35,11 +35,17 @@ kix = find(strcmp(gsop.olabels, 'K^2'));  K = squeeze(rslt{kix}(1,end,:));
 
 % Plot sound wave stuff for validation
 
-figure, plot(ew, '.k'), title('computed and expected BdG eigenvalues')
-xlabel 'mode number', ylabel '\epsilon'
+figure, subplot 311
+plot(ew, '.k'), title('computed and expected BdG eigenvalues')
+ylabel '\epsilon'
 % w = ck, k is around n/2L, healing length is (2*gamma)^{-1/2} in LL normalisation
 % FIXME include ordinary energy
 n = 1:length(ew);  L = out.V;
 k1 = 2*pi/L;  k = k1*n/2;  heal = 1/sqrt(2*out.a.gamma);
 hold on, plot(n, k.*sqrt(heal.^-2+k.^2), '-k')
 % plot(n, (n-2)*sqrt(out.a.gamma)/(4*L), '-k')
+
+subplot 312, imagesc(U), title 'u modes', ylabel x
+subplot 313, imagesc(V), title 'v modes', ylabel x
+xlabel 'mode number'
+colormap gray
