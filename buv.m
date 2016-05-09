@@ -43,6 +43,6 @@ c = in.dV*sum(abs(modes(:,1,:)).^2 - abs(modes(:,2,:)).^2);
 c = 1./sqrt(c);
 modes = modes.*repmat(c,in.points(2),2,1);
 
-U = modes(:,1,:);  V = modes(:,2,:);
+U = squeeze(modes(:,1,:));  V = squeeze(modes(:,2,:));
 
 end
