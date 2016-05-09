@@ -41,3 +41,8 @@ subplot 312, imagesc(uvs.a.U), title 'u modes', ylabel x
 subplot 313, imagesc(uvs.a.V), title 'v modes', ylabel x
 xlabel 'mode number'
 colormap gray
+
+% draw the initial state
+
+uvs = xinstrument(uvs, 'n');
+xspde(uvs)
