@@ -9,43 +9,35 @@ system.points = [nan 70];
 system.ensembles = [1 1 1];
 system = trap(system);
 
-gsop = order(static(system, 0));
+gsop = static(system, 0);
 gsop.ranges(1) = 0.5;
 gsop.points(1) = 49;
 gsop.steps = 30;
-gsop.raw = true;
 % gsop = xinstrument(gsop, 'n', 'N', @(~,in) in.a.N, 'T', 'K', 'V', @(~,in) in.a.g, 'g2');
-gsop = xinstrument(gsop, 'n', 'N', 'Kx');
 
 coherent = twop(static(system, 0));
 coherent = xinstrument(coherent, 'ntw', 'g2tw');
 % ground = bdg(system);
 
 
-% Find equilibrium order parameter
-
-[~, out, rslt, raw] = xsim(gsop);
-rslt = rslt{1};
-a = squeeze(raw{1,1,2}(:,:,end));  a = a(:);
-kix = find(strcmp(gsop.olabels, 'K^2'));  K = squeeze(rslt{kix}(1,end,:));
-
 % Find sound wave U and V modes
 
-[ew, U, V] = buv(out,K,a);
+uvs = ground(gsop);
 
 % Plot sound wave stuff for validation
 
 figure, subplot 311
-plot(ew, '.k'), title('computed and expected BdG eigenvalues')
+plot(uvs.a.bew, '.k'), title('computed and expected BdG eigenvalues')
 ylabel '\epsilon'
-% w = ck, k is around n/2L, healing length is (2*gamma)^{-1/2} in LL normalisation
+% w = ck, k is around n/2L, healuvsg length is (2*gamma)^{-1/2} uvs LL normalisation
 % FIXME include ordinary energy
-n = 1:length(ew);  L = out.V;
-k1 = 2*pi/L;  k = k1*n/2;  heal = 1/sqrt(2*out.a.gamma);
+n = 1:length(uvs.a.bew);
+L = system.ranges(2);	% not quite, but good enough for now
+k1 = 2*pi/L;  k = k1*n/2;  heal = 1/sqrt(2*system.a.gamma);
 hold on, plot(n, k.*sqrt(heal.^-2+k.^2), '-k')
 % plot(n, (n-2)*sqrt(out.a.gamma)/(4*L), '-k')
 
-subplot 312, imagesc(U), title 'u modes', ylabel x
-subplot 313, imagesc(V), title 'v modes', ylabel x
+subplot 312, imagesc(uvs.a.U), title 'u modes', ylabel x
+subplot 313, imagesc(uvs.a.V), title 'v modes', ylabel x
 xlabel 'mode number'
 colormap gray
