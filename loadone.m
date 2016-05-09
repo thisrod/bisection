@@ -66,7 +66,7 @@ bmod = real(bmod);  buv = real(buv);  ev = real(ev);
 figure, plot(ew, '.k'), title('computed and expected BdG eigenvalues')
 % w = ck, k is around n/2L, healing length is (2*gamma)^{-1/2} in LL normalisation
 % FIXME include ordinary energy
-n = 1:length(ew);  L = r.ranges(2);  L = L*gs/(gs-1);
+n = 1:length(ew);  L = out.V;
 k1 = 2*pi/L;  k = k1*n/2;  heal = 1/sqrt(2*r.a.gamma);
 hold on, plot(n, k.*sqrt(heal.^-2+k.^2), '-k')
 % plot(n, (n-2)*sqrt(r.a.gamma)/(4*L), '-k')
