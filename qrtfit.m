@@ -61,7 +61,6 @@ save cfs.mat cfs
 % save qrtfitdat.mat x1 y1 x2 y2 xoff zsec tplot cfs Ks Ks1 Kf
 
 set(0, 'defaultaxesfontsize', 14, 'defaulttextfontsize', 14)
-load qrtfitdat
 
 xx = linspace(-2.2, 2.2, 100)';
 ctrs = (1:10).^2/0.25.^2;
