@@ -6,7 +6,7 @@ function [x, y, z, K] = loadk(t, U, r0)
 	x1 = x-r0(1);  y1 = y - r0(2);  z1 = z-r0(3);
 	[X, Y, Z] = ndgrid(x1, y1, z1);
 	R = U*[X(:) Y(:) Z(:)]';
-	# interp3 takes meshgrid order, reshape takes ndgrid order
+	% interp3 takes meshgrid order, reshape takes ndgrid order
 	K = interp3(y1, x1, z1, K, R(2,:), R(1,:), R(3,:));
 	K = reshape(K, size(X));
 end
