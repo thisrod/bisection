@@ -7,12 +7,12 @@ cfs = repmat(nan, 5, 18);		% cols hold coefficients [x^4 1 x^2 y^2 z^2]
 
 tplot = [0 15 17];
 for t = 0:17
-	[x, y, z, K] = loadk(t);
+	[x, y, z, K] = loadk(t);  Kvec = K(:);
 	if t == 0
 		Ks = zeros([length(tplot) length(x) length(y) 2]);
 		Ks1 = zeros([length(tplot) length(x)]);
 		zsec = zeros([length(tplot) 2]);
-	endif
+	end
 	[r0, wgt] = tcent(x,y,z,K);  win = wgt > 0.01;  wgt = wgt(win);
 	x1 = x - r0(1);  y1 = y - r0(2);  z1 = z - r0(3);
 	
@@ -26,7 +26,7 @@ for t = 0:17
 	
 	% r expands sample points over principal axes
 	[X,Y,Z] = ndgrid(x1,y1,z1);  r = [X(:) Y(:) Z(:)]*U;  w = r(win,:);
-	rsdl = K(:)(win) - [w(:,1).^4 ones(size(w(:,1))) w(:,1).^2]*cfs(1:3, t+1);
+	rsdl = Kvec(win) - [w(:,1).^4 ones(size(w(:,1))) w(:,1).^2]*cfs(1:3, t+1);
 	cfs(4:5, t+1) = ([w(:,2).^2 w(:,3).^2].*[wgt wgt]) \ (rsdl.*wgt);
 	
 	[~,i] = ismember(t, tplot);
@@ -36,8 +36,8 @@ for t = 0:17
 		% Kfit = reshape(Kfit, size(K));
 		% Kf(i,:,:,:) = Kfit(:,:,[i3 70]);
 		zsec(i,:) = z1([i3 70]);
-	endif
-endfor
+	end
+end
 
 xoff = [0 0 z1(70)]*U;  x1 = [x1; x1+xoff(1)];
 
@@ -56,6 +56,6 @@ for i = 1:length(tplot)
 	Kf(i,:,:,:) = reshape(Kfit, size(X));
 end
 
-save -mat cfs.mat cfs
+save cfs.mat cfs
 
-save -mat qrtfitdat.mat x1 y1 x2 y2 xoff zsec tplot cfs Ks Ks1 Kf
+save qrtfitdat.mat x1 y1 x2 y2 xoff zsec tplot cfs Ks Ks1 Kf
