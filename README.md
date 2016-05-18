@@ -1,7 +1,7 @@
-Programs in this directory
+This repository comprises various simulations being developed at Swinburne University of Technology using XPDE.
 
-|prinax.m| determines the principle axes of the sampled potentials supplied from Vienna.  The trap axes don't align with the sampling axes.  It defines a function |loadk|, that loads the Vienna potential from the data, and |tcent|, that finds the approximate centre of the potential.
+The `bec` directory is a library for constructing XPDE input structures that represent cold atoms.  Run `help trap` for an introduction.
 
-|qrtfit.m| generates the coefficients of quartic polynomials that fit the trap potentials.
+The `util` directory contains some utility functions for XPDE.  These generate explicit spectral derivative matrices and do the book keeping for various commonly used observables.
 
-Currently, the plotting facilities in Matlab work better than those in Octave.  In particular, Matlab can overlay contours on a zplot.  So the pattern is for qrtfit (say) to save data to be plotted in qrtfitdat.mat, which is loaded at the start of qrtfitfigs.m.
+The `vienna` directory contains simulations related to the split trap experiment in Vienna. 
