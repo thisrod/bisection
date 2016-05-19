@@ -44,6 +44,6 @@ colormap gray
 
 % draw the initial state
 
-uvs.ensembles = [70 1 1];
+uvs.ensembles = [70 2 1];
 uvs = xinstrument(uvs, 'n');
 xspde(uvs)
