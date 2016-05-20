@@ -45,15 +45,29 @@ if nargin == 0
 end
 
 if isempty(plotfs)
+
+	% Idea: instead of doing the whole table, have a special case that adds functions, and call xinstrument reentrantly to initialise.
+
 	plotfs = { ...
 		'flag', 'olabel', 'plotfun', 'moments', 'pdimension', 'description'; ...
-		'n', 'n', @(d,~) d{1}, [], [], 'density'; ...
+		'n', 'n', @(d,~) 0*d{1}, [], [], 'density'; ...
+%		'nTW', 'nTW', @(d,r) d{1} - 1/(2*r.dV), [], [], 'density in symmetric order'; ...
+		'nTW', 'nTW', @(d,~) 0*d{1}, [], [], 'density in symmetric order'; ...
+		'N', 'N', @(d,~) d{2}, [], [], 'total number'; ...
 	};
 	plotfs = cell2table(plotfs(2:end,2:end), 'VariableNames', plotfs(1,2:end), 'RowNames', plotfs(2:end,1));
 end
 
-in.observe = {@(a,~) abs(a).^2};
-in.transforms = {[]};
+% This comes after the table is initialised, in case the first call has no arguments
+if nargin == 0
+	disp(plotfs(:,{'description'}))
+	return
+end
+
+% Set in.observe to a standard set of moments, from which the plotting functions can be derived
+
+in.observe = {@(a,~) abs(a).^2, @(a,r) xint(abs(a).^2, r.dx, r)};
+in.transforms = {[], []};
 
 n = 0;
 for o = varargin
