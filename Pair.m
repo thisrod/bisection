@@ -3,7 +3,7 @@
 clear system gsop coherent 
 
 system.name = 'free gas in one dimension, 70 modes';
-system.a.gamma = 1e3;
+system.a.gamma = 1e-2;
 system.a.N = 1e5;
 system.points = [nan 70];
 system.ensembles = [1 1 1];
