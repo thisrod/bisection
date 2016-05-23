@@ -7,7 +7,7 @@ function [ew, U, V] = buv(in, K, a)
 
 %   There are nspace-1 modes, and the missing one is the ground state.
 
-mu = 1971.42857142858;	% from r.a.g*a.^2
+mu = 1/in.a.healing^2;	% implementation restriction: free gas
 LAP = ssd(in.points(2), in.ranges(2)/2);
 M = mu*eye(in.points(2));
 Bother = diag(in.a.g*abs(a).^2);
