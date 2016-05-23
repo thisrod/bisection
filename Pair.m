@@ -42,6 +42,14 @@ subplot 313, imagesc(uvs.a.V), title 'v modes', ylabel x
 xlabel 'mode number'
 colormap gray
 
+% Plot sizes of modes
+
+h = system.ranges(2) / system.points(2);
+unms = sqrt(h*sum(abs(uvs.a.U).^2));
+vnms = sqrt(h*sum(abs(uvs.a.V).^2));
+figure, plot(n, unms, '.k', n, vnms, '.r'), legend u v
+title 'Norms of sound wave modes'
+
 % draw the initial state
 
 uvs.ensembles = [70 2 1];
