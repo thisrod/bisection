@@ -45,10 +45,10 @@ colormap gray
 % Plot sizes of modes
 
 h = system.ranges(2) / system.points(2);
-unms = sqrt(h*sum(abs(uvs.a.U).^2));
-vnms = sqrt(h*sum(abs(uvs.a.V).^2));
+unms = h*sum(abs(uvs.a.U).^2);
+vnms = h*sum(abs(uvs.a.V).^2);
 figure, plot(n, unms, '.k', n, vnms, '.r'), legend u v
-title 'Norms of sound wave modes'
+title 'Particle number of normalised sound wave modes'
 
 % draw the initial state
 

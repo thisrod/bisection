@@ -11,17 +11,20 @@ function in = ground(in)
 
 gsop = order(in);
 gsop.raw = true;
-gsop = xinstrument(gsop, 'n', 'N', 'Kx');
+gsop = xinstrument(gsop, 'n', 'N', 'Kx', 'rshl');
 
 [~, out, rslt, raw] = xsim(gsop);  rslt = rslt{1};
 a = squeeze(raw{1,1,2}(:,:,end));  a = a(:);  in.a.op = a;
 kix = find(strcmp(gsop.olabels, 'K^2'));  K = squeeze(rslt{kix}(1,end,:));
+% Beware: xave fakes its answer to work around the grid length design flaw,
+% so xave(uniform_value) is not equal to the uniform value!
+in.a.healing = 1/sqrt(in.a.g*a(1)^2);
 
 % modify buv so that the modes are scaled already
 [in.a.bew, in.a.U, in.a.V] = buv(out,K,a);
 
 if norm(in.a.U(:,1)) > 0.1*norm(in.a.op)
-	warning(sprintf('The mean field approximation is dodgy, because a normalised Bogoliubov mode has %.1e particles, while the order parameter has %.1e particles.\n', out.dV*norm(in.a.U(:,1))^2, out.dV*norm(in.a.op)^2))
+	warning(sprintf('The mean field approximation is dodgy: a normalised Bogoliubov mode has %.1e particles, but the order parameter has only %.1e particles.\n', out.dV*norm(in.a.U(:,1))^2, out.dV*norm(in.a.op)^2))
 end
 
 in.initial = @init;

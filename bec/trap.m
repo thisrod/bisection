@@ -11,6 +11,7 @@ function in = trap(in)
 % a.bew	sound wave eigenfrequencies
 % a.U	sound wave U modes
 % a.V	sound wave V modes
+% a.healing	healing length
 
 if isfield(in.a, 'gamma'), in = ensure(in, 'dimension', 2); end
 in = offer(in, 'ranges', @() NaN(1, in.dimension), 'dimension');
