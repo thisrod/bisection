@@ -15,7 +15,7 @@ zsec = zeros([length(tplot) 2]);
 
 for t = 0:17
 	K = loadk(t);
-	[r0, wgt] = tcent(x,y,z,K);  win = wgt > 0.01;  wgt = wgt(win);
+	[r0, wgt] = tcent(x,y,z,K);  
 	
 	% shift origin to trap centre
 	x = x - r0(1);  y = y - r0(2);  z = z - r0(3);
@@ -28,13 +28,17 @@ for t = 0:17
 	% Away from the origin, the potential is actually quadratic
 	% not quartic.  We fit the quartic to the potential
 	% around the wells, where the gas is.
-	Kx = squeeze(K(:,j0,k0));  ix = Kx <= 50;
+	Kx = squeeze(K(:,j0,k0));
+	ix = Kx <= 50;  wix = wgt > 0.01;  wgt = wgt(wix);
 	basis = [x.^4; ones(size(x)); x.^2]';
 	cfs(1:3, t+1) = basis(ix,:) \ Kx(ix);
 	
-	% r expands sample points over principal axes
-	[X,Y,Z] = ndgrid(x,y,z);  r = [X(:) Y(:) Z(:)]*U;  w = r(win,:);
-	rsdl = K(win) - [w(:,1).^4 ones(size(w(:,1))) w(:,1).^2]*cfs(1:3, t+1);
+	% Each row of r is the coordinates of a sample point along
+	% the principal axes of the trap
+	[X,Y,Z] = ndgrid(x,y,z);  r = [X(:) Y(:) Z(:)]*U;  w = r(wix,:);
+	
+	% Fit a quadratic in y and z, using the weights returned by tcent
+	rsdl = K(wix) - [w(:,1).^4 ones(size(w(:,1))) w(:,1).^2]*cfs(1:3, t+1);
 	cfs(4:5, t+1) = ([w(:,2).^2 w(:,3).^2].*[wgt wgt]) \ (rsdl.*wgt);
 	
 	[~,i] = ismember(t, tplot);
