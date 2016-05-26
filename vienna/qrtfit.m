@@ -16,32 +16,38 @@ zsec = zeros([length(tplot) 2]);
 for t = 0:17
 	K = loadk(t);
 	[r0, wgt] = tcent(x,y,z,K);  win = wgt > 0.01;  wgt = wgt(win);
-	x1 = x - r0(1);  y1 = y - r0(2);  z1 = z - r0(3);
 	
-	% fit symmetric quartic to potential well below second excited state
-	% fit doesn't justify interpolating from nearest grid point to exact minimum
-	%	or rotating grid
-	[~,i1] = min(abs(x1));  [~,i2] = min(abs(y1));  [~,i3] = min(abs(z1));
-	K1 = squeeze(K(:,i2,i3));
-	xf = x(K1 <= 50)';
-	cfs(1:3, t+1) = [xf.^4 ones(size(xf)) xf.^2] \ K1(K1 <= 50);
+	% shift origin to trap centre
+	x = x - r0(1);  y = y - r0(2);  z = z - r0(3);
+	[~,i0] = min(abs(x));  [~,j0] = min(abs(y));  [~,k0] = min(abs(z));
+	
+	% Fit a quartic potential along a line that isn't quite the
+	% x-axis, but is close enough for the resulting error to
+	% be small compared to the residual.
+	%
+	% Away from the origin, the potential is actually quadratic
+	% not quartic.  We fit the quartic to the potential
+	% around the wells, where the gas is.
+	Kx = squeeze(K(:,j0,k0));  ix = Kx <= 50;
+	basis = [x.^4; ones(size(x)); x.^2]';
+	cfs(1:3, t+1) = basis(ix,:) \ Kx(ix);
 	
 	% r expands sample points over principal axes
-	[X,Y,Z] = ndgrid(x1,y1,z1);  r = [X(:) Y(:) Z(:)]*U;  w = r(win,:);
+	[X,Y,Z] = ndgrid(x,y,z);  r = [X(:) Y(:) Z(:)]*U;  w = r(win,:);
 	rsdl = K(win) - [w(:,1).^4 ones(size(w(:,1))) w(:,1).^2]*cfs(1:3, t+1);
 	cfs(4:5, t+1) = ([w(:,2).^2 w(:,3).^2].*[wgt wgt]) \ (rsdl.*wgt);
 	
 	[~,i] = ismember(t, tplot);
 	if i
-		Ks(i,:,:,:) = K(:,:,[i3 70]);  Ks1(i,:) = K1;
+		Ks(i,:,:,:) = K(:,:,[k0 70]);  Ks1(i,:) = Kx;
 		% Kfit = [r(:,1).^4 ones(size(r(:,1))) r.^2]*cfs(:,t+1);
 		% Kfit = reshape(Kfit, size(K));
-		% Kf(i,:,:,:) = Kfit(:,:,[i3 70]);
-		zsec(i,:) = z1([i3 70]);
+		% Kf(i,:,:,:) = Kfit(:,:,[k0 70]);
+		zsec(i,:) = z([k0 70]);
 	end
 end
 
-xoff = [0 0 z1(70)]*U;  x1 = [x1; x1+xoff(1)];
+xoff = [0 0 z(70)]*U;  x = [x; x+xoff(1)];
 
 % set x^4 coefficient constant - juggle this to get plots that fit
 cfs(1,:) = mean(cfs(1,15:end));
@@ -60,7 +66,7 @@ end
 
 save cfs.mat cfs
 
-% save qrtfitdat.mat x1 y1 x2 y2 xoff zsec tplot cfs Ks Ks1 Kf
+% save qrtfitdat.mat x y x2 y2 xoff zsec tplot cfs Ks Ks1 Kf
 
 set(0, 'defaultaxesfontsize', 14, 'defaulttextfontsize', 14)
 
@@ -71,7 +77,7 @@ for i = 1:length(tplot)
 
 t = tplot(i);
 
-figure, plot(x1(1,:), Ks1(i,:), '.k')
+figure, plot(x(1,:), Ks1(i,:), '.k')
 axis([-2.2 2.2 0 200]), hold on
 plot(xx, [xx.^4 ones(size(xx)) xx.^2]*cfs(1:3, t+1), '-k')
 title(['Fit along splitting axis at t = ' int2str(t) ' ms'])
@@ -83,7 +89,7 @@ xlabel x, ylabel K^2
 
 for j = 1:2
 	figure
-	contour(x1(j,:), y1, squeeze(Ks(i,:,:,j))', ctrs, '-k')
+	contour(x(j,:), y, squeeze(Ks(i,:,:,j))', ctrs, '-k')
 	hold on
 	contour(x2, y2, squeeze(Kf(i,:,:,j))', ctrs, ':k')
 	% xlabel x, ylabel y
