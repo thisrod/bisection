@@ -15,12 +15,9 @@ samples.x = nan(18, length(x));
 samples.y = nan(18, length(y));
 samples.z = nan(18, length(z));
 samples.K = nan(18, length(x), length(y), length(z));
-Ks = zeros([length(tplot) length(x) length(y) 2]);
-Ks1 = zeros([length(tplot) length(x)]);
-zsec = zeros([length(tplot) 2]);
 
 for t = 0:17
-	K = loadk(t);  Kt(t+1,:,:,:) = K;
+	K = loadk(t);
 	[r0, wgt] = tcent(x,y,z,K);  
 	
 	% shift origin to trap centre
@@ -50,32 +47,18 @@ for t = 0:17
 	% Save samples for comparision plots
 	samples.x(t+1,:) = x;  samples.y(t+1,:) = y;  samples.z(t+1,:) = z;
 	samples.K(t+1,:,:,:) = K;
-	
-	[~,i] = ismember(t, tplot);
-	if i
-		Ks(i,:,:,:) = K(:,:,[k0 far]);  Ks1(i,:) = Kx;
-		zsec(i,:) = z([k0 far]);
-	end
 end
 
 % make x^4 coefficient constant.  The averaged range is adjusted
-% so that the double well plots fit
+% so that the double well plots fit.
 cfs(1,:) = mean(cfs(1,15:end));
-
-Ks = samples.K(tplot+1, :, :, [k0 far]);
-Ks1 = squeeze(samples.K(tplot+1, :, j0, k0));
-
-xoff = [0 0 z(far)]*U;  x = [x; x+xoff(1)];
-
 
 save cfs.mat cfs
 
 set(0, 'defaultaxesfontsize', 14, 'defaulttextfontsize', 14)
 
-% axes for line and section plots
+% axis for line plots
 xx = linspace(-2.2, 2.2, 100)';
-L = 1;  N = 16;  h = 2*L/N;
-x2 = h*(1:3*N)-3*L;  y2 = h*(1:N)-L; 
 
 % quadratic levels to space harmonic trap contours evenly
 ctrs = (1:10).^2/0.25.^2;
@@ -95,8 +78,6 @@ s = sprintf('K^2 = %.2f x^4 %+.2f x^2 %+.2f', cfs(1, t+1), cfs(3, t+1), cfs(2, t
 text(-1.5, 125, s)
 xlabel x, ylabel K^2
 
-% TODO get Matlab to put a box around the figure
-
 % plot contours of samples and fit at trap centre and end of z axis
 for k = [k0 far]
 	% find shifted x axis
@@ -111,7 +92,8 @@ for k = [k0 far]
 	Kfit = squeeze(reshape(Kfit, size(X)));
 	
 	figure
-	contour(x, samples.y(t+1,:), squeeze(samples.K(t+1,:,:,k))', ctrs, '-k')
+	[C, h] = contour(x, samples.y(t+1,:), squeeze(samples.K(t+1,:,:,k))', ctrs, '-k');
+	h.LineColor = [0.6 0.6 0.6];
 	hold on
 	contour(samples.x(t+1,:), samples.y(t+1,:), Kfit', ctrs, ':k')
 	% xlabel x, ylabel y
