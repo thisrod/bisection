@@ -14,9 +14,7 @@ Ks1 = zeros([length(tplot) length(x)]);
 zsec = zeros([length(tplot) 2]);
 
 for t = 0:17
-	K = loadk(t);  Kvec = K(:);
-	if t == 0
-	end
+	K = loadk(t);
 	[r0, wgt] = tcent(x,y,z,K);  win = wgt > 0.01;  wgt = wgt(win);
 	x1 = x - r0(1);  y1 = y - r0(2);  z1 = z - r0(3);
 	
@@ -30,7 +28,7 @@ for t = 0:17
 	
 	% r expands sample points over principal axes
 	[X,Y,Z] = ndgrid(x1,y1,z1);  r = [X(:) Y(:) Z(:)]*U;  w = r(win,:);
-	rsdl = Kvec(win) - [w(:,1).^4 ones(size(w(:,1))) w(:,1).^2]*cfs(1:3, t+1);
+	rsdl = K(win) - [w(:,1).^4 ones(size(w(:,1))) w(:,1).^2]*cfs(1:3, t+1);
 	cfs(4:5, t+1) = ([w(:,2).^2 w(:,3).^2].*[wgt wgt]) \ (rsdl.*wgt);
 	
 	[~,i] = ismember(t, tplot);
