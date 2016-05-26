@@ -1,17 +1,21 @@
-% fit quadratic/quartic potentials to the Vienna trap data, for interpolation around the bottom of the trap.
-% run qrtfitfigs.m to print the figures.  currently needs to be done in Matlab.
+% fit quadratic/quartic potentials to the Vienna trap data, for interpolation around the bottom of the trap.  Plot contours of original and interpolated potentials.
 
 prinax
 
-cfs = repmat(nan, 5, 18);		% cols hold coefficients [x^4 1 x^2 y^2 z^2]
+% The ith column of cfs holds the interpolation coefficients at time
+% (i-1)ms, in the order [x^4 1 x^2 y^2 z^2]
+cfs = nan(5,18);
 
 tplot = [0 15 17];
+
+[~, x, y, z] = loadk(0);
+Ks = zeros([length(tplot) length(x) length(y) 2]);
+Ks1 = zeros([length(tplot) length(x)]);
+zsec = zeros([length(tplot) 2]);
+
 for t = 0:17
-	[x, y, z, K] = loadk(t);  Kvec = K(:);
+	K = loadk(t);  Kvec = K(:);
 	if t == 0
-		Ks = zeros([length(tplot) length(x) length(y) 2]);
-		Ks1 = zeros([length(tplot) length(x)]);
-		zsec = zeros([length(tplot) 2]);
 	end
 	[r0, wgt] = tcent(x,y,z,K);  win = wgt > 0.01;  wgt = wgt(win);
 	x1 = x - r0(1);  y1 = y - r0(2);  z1 = z - r0(3);

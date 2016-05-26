@@ -1,4 +1,4 @@
-function [x, y, z, K] = loadk(t, U, r0)
+function [K, x, y, z] = loadk(t, U, r0)
 	% load potential in dispersion um, rotate to prinaxes.
 	load(['potentials/RWA_X_3D_' int2str(t) '.mat'])
 	K = 17.19*v;  K = K - min(K(:));

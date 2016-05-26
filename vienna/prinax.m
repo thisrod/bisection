@@ -3,7 +3,7 @@
 
 N = 7e3;		% nominal number of atoms
 
-[x, y, z, K] = loadk(17);
+[K, x, y, z] = loadk(17);
 [r0, rho] = tcent(x,y,z,K);
 x1 = x-r0(1);  y1 = y - r0(2);  z1 = z-r0(3);
 [X,Y,Z] = ndgrid(x1,y1,z1);
