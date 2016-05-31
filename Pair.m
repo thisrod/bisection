@@ -17,7 +17,6 @@ gsop.steps = 30;
 
 coherent = twop(static(system, 0));
 coherent = xinstrument(coherent, 'ntw', 'g2tw');
-% ground = bdg(system);
 
 
 % Find sound wave U and V modes
@@ -53,5 +52,5 @@ title 'Particle number of normalised sound wave modes'
 % draw the initial state
 
 uvs.ensembles = [70 2 1];
-uvs = xinstrument(uvs, 'n');
+uvs = xinstrument(uvs, 'N', 'n', 'ntw', 'g2tw');
 xspde(uvs)
