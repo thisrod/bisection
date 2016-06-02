@@ -31,7 +31,7 @@ coherent = xinstrument(coherent, 'ntw', 'g2tw');
 
 % configure Bogoliubov ground state sampling
 
-uvs = ground(op);
+uvs = bogs(op);
 
 % Plot sound wave modes for validation
 
