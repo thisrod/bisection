@@ -29,6 +29,6 @@ function a = init(~,r)
 	a = nan(r.nlattice,1);
 	for i = 1:r.ensembles(1)
 		w = randn(modes,2)*[1; 1i]/2;
-		a((i-1)*r.nspace+1:i*r.nspace) = r.a.U*w - r.a.V*conj(w);
+		a((i-1)*r.nspace+1:i*r.nspace) = r.a.op + r.a.U*w - r.a.V*conj(w);
 	end
 end
