@@ -23,6 +23,7 @@ op = static(system, 0);
 op.ranges(1) = 0.5;
 op.points(1) = 49;
 op.steps = 30;
+op = eqop(op);
 
 % check that g2 is 1 for a coherent order parameter
 
