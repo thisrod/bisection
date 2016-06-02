@@ -1,29 +1,39 @@
 % shell to run order and buv for a one-dimensional free gas.
 
-clear system gsop coherent 
+clear system op coherent 
+
+% Configure an untrapped 1D Bose gas with 1e5 atoms and Lieb-Linniger
+% paramter 0.01.  This should be essentially coherent at zero
+% temperature.
+%
+% The calculation uses the atomic separation as the unit of length,
+% so that |\psi|=1 and the GPE right-hand side has the form 
+% (D_11 + 2\gamma|\psi|^2)\psi.
 
 system.name = 'free gas in one dimension, 70 modes';
-system.a.gamma = 1e-2;
+system.a.gamma = 0.01;
 system.a.N = 1e5;
 system.points = [nan 70];
 system.ensembles = [1 1 1];
 system = trap(system);
 
-gsop = static(system, 0);
-gsop.ranges(1) = 0.5;
-gsop.points(1) = 49;
-gsop.steps = 30;
-% gsop = xinstrument(gsop, 'n', 'N', @(~,in) in.a.N, 'T', 'K', 'V', @(~,in) in.a.g, 'g2');
+% numerical parameters to find the inital order parameter by imaginary time
+
+op = static(system, 0);
+op.ranges(1) = 0.5;
+op.points(1) = 49;
+op.steps = 30;
+
+% check that g2 is 1 for a coherent order parameter
 
 coherent = twop(static(system, 0));
 coherent = xinstrument(coherent, 'ntw', 'g2tw');
 
+% configure Bogoliubov ground state sampling
 
-% Find sound wave U and V modes
+uvs = ground(op);
 
-uvs = ground(gsop);
-
-% Plot sound wave stuff for validation
+% Plot sound wave modes for validation
 
 figure, subplot 311
 plot(uvs.a.bew, '.k'), title('computed and expected BdG eigenvalues')
@@ -50,7 +60,7 @@ figure, plot(n, unms, '.k', n, vnms, '.r'), legend u v
 hold on, plot(n, 1./(2*sqrt(2)*k*heal), '-k');
 title 'Particle number of normalised sound wave modes'
 
-% draw the initial state
+% sample a Bogoliubov ground state and sample g2
 
 uvs.ensembles = [70 2 1];
 uvs = xinstrument(uvs, 'N', 'Ntw', 'n', 'ntw', 'g2tw');
