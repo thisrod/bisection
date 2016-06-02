@@ -26,8 +26,9 @@ op.steps = 30;
 
 % check that g2 is 1 for a coherent order parameter
 
-coherent = twop(static(system, 0));
-coherent = xinstrument(coherent, 'ntw', 'g2tw');
+coherent = cogs(op);
+coherent = xinstrument(coherent, 'ntw', 'g2tw', @(t,in) 1);
+xspde(coherent)
 
 % configure Bogoliubov ground state sampling
 
