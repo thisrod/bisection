@@ -9,7 +9,7 @@ function in = xinstrument(in, varargin)
 %   out = XINSTRUMENT(in, O, N) sets the corresponding element of images
 %   to the integer N.
 %   
-%   out = XINSTRUMENT(in, O, @F) sets a comparison function.
+%   out = XINSTRUMENT(in, O, @F(t,in)) sets a comparison function.
 %   
 %   out = XINSTRUMENT(T) appends the table T to the standard observables
 %   stored.
