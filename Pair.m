@@ -1,6 +1,6 @@
 % shell to run order and buv for a one-dimensional free gas.
 
-clear system op coherent 
+clear system op coherent uvs wait
 
 % Configure an untrapped 1D Bose gas with 1e5 atoms and Lieb-Linniger
 % paramter 0.01.  This should be essentially coherent at zero
@@ -25,12 +25,22 @@ op.points(1) = 49;
 op.steps = 30;
 op = eqop(op);
 
+% simulate dynamics and look for oscillating correlations
+
+wait = static(system, 0);
+wait.ranges(1) = 12;
+wait.points(1) = 49;
+wait.steps = 30;
+wait = xinstrument(wait, 'g2tw');
+
 % check that g2 is 1 for a coherent order parameter
 
 coherent = cogs(op);
 coherent.ensembles = [90 1 2];
 coherent = xinstrument(coherent, 'ntw', 'g2tw', @(t,in) 1);
-xspde(coherent)
+wait.name = 'oscillating correlations from coherent initial state';
+wait.ensembles = coherent.ensembles;
+xspde({coherent, wait})
 
 % configure Bogoliubov ground state sampling
 
@@ -67,4 +77,10 @@ title 'Particle number of normalised sound wave modes'
 
 uvs.ensembles = [90 1 2];
 uvs = xinstrument(uvs, 'N', 'Ntw', 'n', 'ntw', 'g2tw');
-xspde(uvs)
+
+% run it
+
+wait.name = 'stable correlations from bogoliubov initial state';
+wait.ensembles = uvs.ensembles;
+xspde({uvs, wait})
+
