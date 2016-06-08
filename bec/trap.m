@@ -7,6 +7,7 @@ function in = trap(in)
 %
 % a.op	equilibrium order parameter
 % a.N	number of atoms in the field
+% a.g		coefficient of |a|^2 in GPE
 % a.gamma	Lieb-Linniger parameter
 % a.bew	sound wave eigenfrequencies
 % a.U	sound wave U modes
