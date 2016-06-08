@@ -8,9 +8,9 @@ switch s, case 'trap'
 in.name = 		'Vienna split trap';
 in.ranges = 		[NaN 200 6];
 in.xlabels = 		{'t', 'z', 'x'};
-in.c.N = 			7000;
-in.c.y0 = 			0.235;
-in.c.x0 = 			3.3;
+in.a.N = 			7000;
+in.a.y0 = 			0.235;
+in.a.x0 = 			3.3;
 in.a.g = 			0.2255;
 in.c.tfs = 			0:17;
 in.c.cfs = 			cfs([1 2 3 5], :);
