@@ -15,10 +15,23 @@ function D2=ssd(in, axis)
 		error 'No axis specified along which to take the derivative'
 	end
 
+	% calculate second derivative operator for chosen axis
 	N = in.points(axis);  L = in.ranges(axis)/2;
 	assert(~mod(N,2));	% odd grids NYI
 	L = L*N/(N-1);  h = 2*pi./N;
 	column = [-pi^2/(3*h^2)-1/6 ...
 		-0.5*(-1).^(1:N-1)./sin(h*(1:N-1)/2).^2];
-	D2 = (pi/L)^2*toeplitz(column);
+	D1 = (pi/L)^2*toeplitz(column);
+
+	% extend to an operator over all axes
+	
+	D2 = 1;
+	for i = 2:in.dimension
+		if i == axis
+			D2 = kron(D1, D2);
+		else
+			D2 = kron(eye(in.nspace/in.points(i)), D2);
+		end
+	end
+
 end
