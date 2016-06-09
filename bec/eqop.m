@@ -11,8 +11,9 @@ in.raw = true;
 in = xinstrument(in, 'n', 'N', 'Kx', 'rshl');
 
 [~, in, rslt, raw] = xsim(in);  rslt = rslt{1};
-	fprintf('raw size: %s\n', mat2str(size(raw{1,1,2})))
-a = squeeze(raw{1,1,2}(1,1,end,:));  a = a(:);  out.a.op = a;
+fprintf('raw class: %s, size: %s\n', class(raw), mat2str(size(raw)))
+fprintf('raw{1,2} class: %s, size: %s\n', class(raw{1,2}), mat2str(size(raw{1,2})))
+a = squeeze(raw{1,2}(1,1,end,:));  a = a(:);  out.a.op = a;
 kix = find(strcmp(in.olabels, 'K^2'));  out.a.Kludge = squeeze(rslt{kix}(1,1,end,:));
 % Beware: xave fakes its answer to work around the grid length design flaw,
 % so xave(uniform_value) is not equal to the uniform value!
