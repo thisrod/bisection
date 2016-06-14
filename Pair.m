@@ -36,7 +36,7 @@ wait = xinstrument(wait, 'g2tw');
 % check that g2 is 1 for a coherent order parameter
 
 coherent = cogs(op);
-coherent.ensembles = [90 1 2];
+coherent.ensembles = [1 1 2];
 coherent = xinstrument(coherent, 'ntw', 'g2tw', @(t,in) 1);
 wait.name = 'oscillating correlations from coherent initial state';
 wait.ensembles = coherent.ensembles;
@@ -75,7 +75,7 @@ title 'Particle number of normalised sound wave modes'
 
 % sample a Bogoliubov ground state and sample g2
 
-uvs.ensembles = [90 1 2];
+uvs.ensembles = [1 1 2];
 uvs = xinstrument(uvs, 'N', 'Ntw', 'n', 'ntw', 'g2tw');
 
 % run it
