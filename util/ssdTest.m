@@ -82,5 +82,20 @@ in.raw = true;
 
 [~,out,~,raw] = xsim(in);
 s = squeeze(raw{1}(1,1,end,:));  s = s(:);
-LAP = ssd(out,2) + ssd(out,3);
+LAP = ssd(out,'lap');
+assert(norm(25*s+LAP*s) < 1e-10);
+
+%% repeat with different number of points on each axis
+
+m = 16;  n = 20;
+
+in.dimension = 3;
+in.points = [1 m n];
+in.ranges = [1 2*pi*(1-1/m) 2*pi*(1-1/n)];
+in.initial = @(~,r) sin(3*r.x+4*r.y);
+in.raw = true;
+
+[~,out,~,raw] = xsim(in);
+s = squeeze(raw{1}(1,1,end,:));  s = s(:);
+LAP = ssd(out,'lap');
 assert(norm(25*s+LAP*s) < 1e-10);

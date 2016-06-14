@@ -5,6 +5,8 @@ function D2=ssd(in, axis)
 %    of shape in.d.a, gives the second spatial derivative of that field along the numbered axis.
 %    This is useful for explicit diagonalisation and so on.
 %
+%    D = SSD(in, 'lap') returns the laplacian.
+%
 %    The axis argument can be omitted when the field has only one spatial dimension.
 %
 %    See Trefethen, "Spectral Methods in Matlab".
@@ -14,6 +16,13 @@ function D2=ssd(in, axis)
 	elseif nargin == 1
 		error 'No axis specified along which to take the derivative'
 	end
+
+	% Laplacian by recursion
+	if strcmp(axis, 'lap')
+		D2 = 0;
+		for i = 2:in.dimension, D2 = D2 + ssd(in,i); end
+		return
+	end	
 
 	% calculate second derivative operator for chosen axis
 	N = in.points(axis);  L = in.ranges(axis)/2;
@@ -30,7 +39,7 @@ function D2=ssd(in, axis)
 		if i == axis
 			D2 = kron(D1, D2);
 		else
-			D2 = kron(eye(in.nspace/in.points(i)), D2);
+			D2 = kron(eye(in.points(i)), D2);
 		end
 	end
 
