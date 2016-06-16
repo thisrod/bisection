@@ -3,17 +3,18 @@ function [ew, U, V] = buv(in, K, a)
 %
 %   [ew, U, V] = BDG(in, a) takes an XPDE input structure in of the form returned by
 %   STATIC; this must sample the trap density observable from xinstrument.  It also takes and the data value returned by xsim(order(in)).  It returns a vector of eigenvalues E, and matrices U and V with the corresponding mode functions as columns.
-%
 
 %   There are nspace-1 modes, and the missing one is the ground state.
 
+nspace = prod(in.points(2:end));
+
 mu = 1/in.a.healing^2;	% implementation restriction: free gas
-LAP = ssd(in);
-M = mu*eye(in.points(2));
+M = mu*eye(nspace);
 Bother = diag(in.a.g*abs(a).^2);
-Bself = -LAP + diag(K) + 2*Bother;
+Bself = -ssd(in, 'lap') + diag(K) + 2*Bother;
 BdG = [Bself-M, -Bother; Bother, -Bself+M];
 % project onto space orthogonal to a0
+% This could go wrong if, for some i, A(:,1:i) is almost rank-deficient.  Apparently a single Householder reflection is the right way to do it.  Cross that bridge if we come to it. 
 [U1,~] = qr([a eye(numel(a), numel(a)-1)]);  U1 = U1(:, 2:end);
 U = kron(eye(2), U1);
 tic; [ev,ew] = eig(U'*BdG*U, 'vector'); toc
@@ -38,10 +39,10 @@ for i = 1:2:length(ixodd)
 end
 
 % separate u and v modes, then normalise
-modes = reshape(B,in.points(2),2,[]);
+modes = reshape(B,nspace,2,[]);
 c = in.dV*sum(abs(modes(:,1,:)).^2 - abs(modes(:,2,:)).^2);
 c = 1./sqrt(c);
-modes = modes.*repmat(c,in.points(2),2,1);
+modes = modes.*repmat(c,nspace,2,1);
 
 U = squeeze(modes(:,1,:));  V = squeeze(modes(:,2,:));
 

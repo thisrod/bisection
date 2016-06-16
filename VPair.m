@@ -7,4 +7,10 @@ op.steps = 30;
 op = eqop(op);
 
 uvs = bogs(op);
+U = real(uvs.a.U);  V = real(uvs.a.V);
 
+figure, plot(uvs.a.bew, '.k')
+for i = [1 2 5 25 100 200 500 1e3]
+	figure, subplot 211, imagesc(reshape(U(:,i), uvs.points(2:end)))
+	subplot 212, imagesc(reshape(V(:,i), uvs.points(2:end))), colormap gray
+end
