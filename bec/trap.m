@@ -1,18 +1,24 @@
 function in = trap(in)
 %TRAP	Initialise an XPDE structure for an atom trap
 %
-% Potential defaults to free atoms
+% in = TRAP(in)  takes an input structure with a minimal set of atom trap parameters, and fills in the rest.
 %
-% The fields of in.a are as follows.  Various atom trap functions compute these and add them as annotations.
+% The fields of in.a are as follows.  Various atom trap functions compute these and add them as annotations, not just TRAP.
 %
-% a.op	equilibrium order parameter
-% a.N	number of atoms in the field
-% a.g		coefficient of |a|^2 in GPE
-% a.gamma	Lieb-Linniger parameter
-% a.bew	sound wave eigenfrequencies
-% a.U	sound wave U modes
-% a.V	sound wave V modes
-% a.healing	healing length
+% op	equilibrium order parameter
+% T	total kinetic energy of equilibrium order parameter
+% K	total trapping energy of equilibrium order parameter
+% R	total repulsion energy of equilibrium order parameter
+%
+% N	number of atoms in the field
+% g		coefficient of |a|^2 in GPE
+% gamma	Lieb-Linniger parameter
+% bew	sound wave eigenfrequencies
+% U	sound wave U modes
+% V	sound wave V modes
+% healing	healing length
+%
+%    See also: EQOP, BOGS
 
 if isfield(in.a, 'gamma'), in = ensure(in, 'dimension', 2); end
 in = offer(in, 'ranges', @() NaN(1, in.dimension), 'dimension');
