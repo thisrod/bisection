@@ -1,24 +1,40 @@
-function out = eqop(in)
+function out = eqop(in, debug)
 %EQOP     annotate input structure with equilibrium order parameter
 %
-%    in = EQOP(in) annotates in.a.  This can be copied to other input structures.
+%    in = EQOP(in) runs xsim to compute an equilibrium order parameter, and returns a structure annotated with op, T, K, R, and healing.
+%
+%    in = EQOP(in, 'debug') plots stuff that helps for debugging
 %
 %    See also: TRAP
+
+debug = (nargin == 2 && strcmp(debug, 'debug'));
+
+% data = {'T', 'K', 'R', 'healing'};
+data = {'Re', 'Im'};	% stubs before observables are implemented
 
 out = in;
 in = order(in);
 in.raw = true;
-in = xinstrument(in, 'n', 'N', 'Kx', 'rshl');
 
-[~, in, rslt, raw] = xsim(in);  rslt = rslt{1};
+obs = data;
+if debug, obs = [obs 'n' 5]; end
+in = xinstrument(in, obs{:});
+
+[~, in, rslt, raw] = xsim(in);
+if debug, xgraph(rslt, in); end
+
+rslt = rslt{1};
+
 fprintf('raw class: %s, size: %s\n', class(raw), mat2str(size(raw)))
 fprintf('raw{1,2} class: %s, size: %s\n', class(raw{1,2}), mat2str(size(raw{1,2})))
-a = squeeze(raw{1,2}(1,1,end,:));  a = a(:);  out.a.op = a;
-kix = find(strcmp(in.olabels, 'K^2'));  out.a.Kludge = squeeze(rslt{kix}(1,1,end,:));
-% Beware: xave fakes its answer to work around the grid length design flaw,
-% so xave(uniform_value) is not equal to the uniform value!
-out.a.healing = 1/sqrt(out.a.g*a(1)^2);
 
-out.dV = in.dV;		% bogs needs this
+a = squeeze(raw{1,2}(1,1,end,:));  a = a(:);  out.a.op = a;
+for o = data
+	o = o{:};
+	r = rslt{find(strcmp(in.olabels, o))};
+	out.a = setfield(out.a, o, squeeze(r(1,1,end,:)));
+end
+
+% out.dV = in.dV;		% bogs used to need this
 
 end
