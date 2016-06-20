@@ -11,7 +11,7 @@ if isfield(in, 'name')
 end
 in.step = @(a,xi,r) nrmstp(a,xi,r,N);
 % in.initial = @(w,r) ones(size(r.x));
-in.initial = @(w,r) repmat(r.a.N/r.V, r.d.a);
+in.initial = @(w,r) repmat(sqrt(r.a.N/r.V), r.d.a);
 f = in.da;  g = in.linear;
 in.da = @(a,w,r) -1i*f(a,w,r);
 in.linear = @(D,r) -1i*g(D,r);

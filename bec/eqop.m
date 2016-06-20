@@ -17,16 +17,13 @@ in = order(in);
 in.raw = true;
 
 obs = data;
-if debug, obs = [obs 'n' 5]; end
+if debug, obs = [obs 'N' 'n' 5]; end
 in = xinstrument(in, obs{:});
 
 [~, in, rslt, raw] = xsim(in);
 if debug, xgraph(rslt, in); end
 
 rslt = rslt{1};
-
-fprintf('raw class: %s, size: %s\n', class(raw), mat2str(size(raw)))
-fprintf('raw{1,2} class: %s, size: %s\n', class(raw{1,2}), mat2str(size(raw{1,2})))
 
 a = squeeze(raw{1,2}(1,1,end,:));  a = a(:);  out.a.op = a;
 for o = data
