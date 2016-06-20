@@ -7,7 +7,8 @@ function in = trap(in)
 %
 % op	equilibrium order parameter
 % T	total kinetic energy of equilibrium order parameter
-% K	total trapping energy of equilibrium order parameter
+% K(r)	total trapping energy of equilibrium order parameter.  This
+%		is a function, with the XPDE parameter stucture as an argument.
 % R	total repulsion energy of equilibrium order parameter
 %
 % N	number of atoms in the field
