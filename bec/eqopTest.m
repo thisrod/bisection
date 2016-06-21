@@ -2,9 +2,9 @@ clear notrap hmtrap box
 
 notrap.name = 'no trap';
 notrap.a.gamma = 1;
-notrap.a.N = 1;
+notrap.a.N = 3;
 notrap.points = [49 70];
-notrap.ranges = [10 nan];
+notrap.ranges = [10 69/70];		% work around the xint circular grid idiocy
 notrap.steps = 30;
 notrap = trap(notrap);
 
@@ -33,6 +33,10 @@ notrap = eqop(notrap, 'debug');
 hmtrap = eqop(hmtrap, 'debug');
 
 box = eqop(box, 'debug');
+
+%% repulsion energy for free atoms
+
+assert(abs(notrap.a.R - 18) < 1e-5);
 
 %% potential energy is small in a box
 
