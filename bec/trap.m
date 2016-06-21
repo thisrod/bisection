@@ -6,10 +6,11 @@ function in = trap(in)
 % The fields of in.a are as follows.  Various atom trap functions compute these and add them as annotations, not just TRAP.
 %
 % op	equilibrium order parameter
-% T	total kinetic energy of equilibrium order parameter
 % K(r)	total trapping energy of equilibrium order parameter.  This
 %		is a function, with the XPDE parameter stucture as an argument.
-% R	total repulsion energy of equilibrium order parameter
+% Teqm	kinetic energy of equilibrium order parameter
+% Reqm	repulsion energy of equilibrium order parameter
+% Keqm	external potential energy of equilibrium order parameter
 %
 % N	number of atoms in the field
 % g		coefficient of |a|^2 in GPE
@@ -45,8 +46,8 @@ LAPs = {@(D,r) D.x.^2, @(D,r) D.x.^2 + D.y.^2, @(D,r) D.x.^2 + D.y.^2 + D.z.^2};
 in.a.LAP = LAPs{in.dimension - 1};
 in.a.NL = @(a,~,r) (r.a.K(r) + r.a.g*abs(a).^2).*a;
 
-in.linear = @(D,r) 0.5i*in.a.LAP(D,r);
-in.da = @(a,w,r) -0.5i*in.a.NL(a,w,r);
+in.linear = @(D,r) 0.5i*r.a.LAP(D,r);
+in.da = @(a,w,r) -0.5i*r.a.NL(a,w,r);
 
 
 end

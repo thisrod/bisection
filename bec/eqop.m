@@ -9,7 +9,7 @@ function out = eqop(in, debug)
 
 debug = (nargin == 2 && strcmp(debug, 'debug'));
 
-data = {'T', 'K', 'R'};
+data = {'Teqm', 'Keqm', 'Reqm'};
 
 out = in;
 in = order(in);

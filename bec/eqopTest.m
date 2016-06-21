@@ -28,28 +28,30 @@ hmtrap.ranges = [10 20];
 hmtrap.steps = 30;
 hmtrap = trap(hmtrap);
 
-notrap = eqop(notrap, 'debug');
+% use debug option to eqop to get graphs
 
-hmtrap = eqop(hmtrap, 'debug');
+notrap = eqop(notrap);
 
-box = eqop(box, 'debug');
+hmtrap = eqop(hmtrap);
+
+box = eqop(box);
 
 %% repulsion energy for free atoms
 
-assert(abs(notrap.a.R - 18) < 1e-5);
+assert(abs(notrap.a.Reqm - 18) < 1e-5);
 
 %% potential energy is small in a box
 
-assert(abs(box.a.K - 0) < 10);
+assert(abs(box.a.Keqm - 0) < 10);
 
 %% kinetic energy for the box ground state
 
-assert(abs(box.a.T - pi^2) < 1)
+assert(abs(box.a.Teqm - pi^2) < 1)
 
 %% potential energy for harmonic
 
-assert(abs(hmtrap.a.K - 0.5) < 1e-3);
+assert(abs(hmtrap.a.Keqm - 0.5) < 1e-4);
 
 %% kinetic energy for harmonic
 
-assert(abs(hmtrap.a.T - 0.5) < 1e-3);
+assert(abs(hmtrap.a.Teqm - 0.5) < 1e-4);

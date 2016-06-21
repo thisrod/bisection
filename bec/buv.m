@@ -1,25 +1,24 @@
-function [ew, U, V] = buv(in, K, a)
-%BUV     Find Bogoliubov sound wave modes
+function r = buv(r)
+%BUV     Add Bogoliubov sound wave modes to the XPDE parameter structure
 %
-%   [ew, U, V] = BDG(in, a) takes an XPDE input structure in of the form returned by
-%   STATIC; this must sample the trap density observable from xinstrument.  It also takes and the data value returned by xsim(order(in)).  It returns a vector of eigenvalues E, and matrices U and V with the corresponding mode functions as columns.
+%   r = BDG(r) takes an XPDE parameter structure, for an input structure of the form returned by
+%   STATIC and EQOP.  It sets r.a.ew, r.a.U and r.a.V to the BdG frequencies and modes
+
+a = r.a.op;
+r = xgrid(r);	% get XPDE data
 
 %   There are nspace-1 modes, and the missing one is the ground state.
 
-nspace = prod(in.points(2:end));
-
-mu = 1/in.a.healing^2;	% implementation restriction: free gas
-M = mu*eye(nspace);
-Bother = diag(in.a.g*abs(a).^2);
-Bself = -ssd(in, 'lap') + diag(K) + 2*Bother;
+mu = (r.a.Teqm + r.a.Keqm + r.a.Reqm)/r.a.N;
+M = mu*eye(r.nspace);
+Bother = diag(r.a.g*abs(a).^2);
+Bself = -ssd(r, 'lap') + diag(r.a.K(r)) + 2*Bother;
 BdG = [Bself-M, -Bother; Bother, -Bself+M];
 % project onto space orthogonal to a0
 % This could go wrong if, for some i, A(:,1:i) is almost rank-deficient.  Apparently a single Householder reflection is the right way to do it.  Cross that bridge if we come to it. 
 [U1,~] = qr([a eye(numel(a), numel(a)-1)]);  U1 = U1(:, 2:end);
 U = kron(eye(2), U1);
 tic; [ev,ew] = eig(U'*BdG*U, 'vector'); toc
-
-save debug1.mat
 
 assert(norm(imag(ew)) / norm(ew) < 1e-5), ew = real(ew);
 
@@ -39,14 +38,17 @@ for i = 1:2:length(ixodd)
 end
 
 % separate u and v modes, then normalise
-modes = reshape(B,nspace,2,[]);
-c = in.dV*sum(abs(modes(:,1,:)).^2 - abs(modes(:,2,:)).^2);
+modes = reshape(B,r.nspace,2,[]);
+c = r.dV*sum(abs(modes(:,1,:)).^2 - abs(modes(:,2,:)).^2);
 c = 1./sqrt(c);
-modes = modes.*repmat(c,nspace,2,1);
+modes = modes.*repmat(c,r.nspace,2,1);
 
 U = squeeze(modes(:,1,:));  V = squeeze(modes(:,2,:));
 if norm(U(:,1)) > 0.1*norm(a)
-	warning(sprintf('The mean field approximation is dodgy: a normalised Bogoliubov mode has %.1e particles, but the order parameter has only %.1e particles.\n', in.dV*norm(in.a.U(:,1))^2, in.dV*norm(in.a.op)^2))
+	warning(sprintf('The mean field approximation is dodgy: a normalised Bogoliubov mode has %.1e particles, but the order parameter has only %.1e particles.\n', r.dV*norm(U(:,1))^2, r.dV*norm(a)^2))
 end
+
+save buvdebug.mat ew U V
+r.a.ew = ew;  r.a.U = U;  r.a.V = V;
 
 end
