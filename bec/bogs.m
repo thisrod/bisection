@@ -7,15 +7,9 @@ function in = ground(in)
 
 % in.a.T is the condensate temperature, expressed as a square wavenumber in dispersion units.
 
-% Find equilibrium order parameter
+% [in.a.bew, in.a.U, in.a.V] = buv(in,in.a.Kludge,in.a.op);
 
-% modify buv so that the modes are scaled already
-[in.a.bew, in.a.U, in.a.V] = buv(in,in.a.Kludge,in.a.op);
-
-if norm(in.a.U(:,1)) > 0.1*norm(in.a.op)
-	warning(sprintf('The mean field approximation is dodgy: a normalised Bogoliubov mode has %.1e particles, but the order parameter has only %.1e particles.\n', in.dV*norm(in.a.U(:,1))^2, in.dV*norm(in.a.op)^2))
-end
-
+in.grid = @buv;
 in.initial = @init;
 % set ranges(1) and points(1) here for null propagation
 

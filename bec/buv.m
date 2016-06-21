@@ -45,5 +45,8 @@ c = 1./sqrt(c);
 modes = modes.*repmat(c,nspace,2,1);
 
 U = squeeze(modes(:,1,:));  V = squeeze(modes(:,2,:));
+if norm(U(:,1)) > 0.1*norm(a)
+	warning(sprintf('The mean field approximation is dodgy: a normalised Bogoliubov mode has %.1e particles, but the order parameter has only %.1e particles.\n', in.dV*norm(in.a.U(:,1))^2, in.dV*norm(in.a.op)^2))
+end
 
 end
