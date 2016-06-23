@@ -9,6 +9,11 @@ function out = eqop(in, debug)
 
 debug = (nargin == 2 && strcmp(debug, 'debug'));
 
+if in.ensembles(1) > 1
+	warning(['Computing a ground state order parameter with an array of %d samples.  ' ...
+		'This is likely to get messy.\n'], in.ensembles(1))
+end
+
 data = {'Teqm', 'Keqm', 'Reqm'};
 
 out = in;
