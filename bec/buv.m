@@ -5,6 +5,7 @@ function r = buv(r)
 %   STATIC and EQOP.  It sets r.a.ew, r.a.U and r.a.V to the BdG frequencies and modes
 
 a = r.a.op;
+K = r.a.K(r);  K = K(1:r.nspace);
 r = xgrid(r);	% get XPDE data
 
 %   There are nspace-1 modes, and the missing one is the ground state.
@@ -12,7 +13,8 @@ r = xgrid(r);	% get XPDE data
 mu = (r.a.Teqm + r.a.Keqm + r.a.Reqm)/r.a.N;
 M = mu*eye(r.nspace);
 Bother = diag(r.a.g*abs(a).^2);
-Bself = -ssd(r, 'lap') + diag(r.a.K(r)) + 2*Bother;
+keyboard
+Bself = -ssd(r, 'lap') + diag(K) + 2*Bother;
 BdG = [Bself-M, -Bother; Bother, -Bself+M];
 % project onto space orthogonal to a0
 % This could go wrong if, for some i, A(:,1:i) is almost rank-deficient.  Apparently a single Householder reflection is the right way to do it.  Cross that bridge if we come to it. 
