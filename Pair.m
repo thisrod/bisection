@@ -14,6 +14,7 @@ system.name = 'free gas in one dimension, 70 modes';
 system.a.gamma = 0.01;
 system.a.N = 1e5;
 system.points = [nan 70];
+system.ranges = [nan system.a.N*69/70];	% correct for missing piece of circular grid
 system.ensembles = [1 1 1];
 system = trap(system);
 
