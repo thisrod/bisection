@@ -73,7 +73,7 @@ for o = varargin
 		in.transforms(n) = obs.transforms(o);
 		in.pdimension(n) = obs.pdimension(o);
 		if strcmp(o, 'g2tw')
-			in.functions{n} = @(d,~) d{n} ./ d{1};
+			in.functions{n} = @(d,~) d{n} ./ d{1}.^2;
 		end
 	elseif isnumeric(o)
 		in.images{n} = o;
