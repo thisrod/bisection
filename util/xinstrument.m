@@ -54,10 +54,10 @@ if nargin == 0
 	return
 end
 
-if ~strcmp(varargin, 'ntw'), varargin = ['ntw', varargin]; end
+if ~strcmp(varargin, 'ntw'), varargin = ['ntw'; varargin]; end
 
 n = 0;
-for o = varargin
+for o = varargin'
 	o = o{:};
 	if ischar(o)
 		n = n + 1;
@@ -73,7 +73,7 @@ for o = varargin
 		in.transforms(n) = obs.transforms(o);
 		in.pdimension(n) = obs.pdimension(o);
 		if strcmp(o, 'g2tw')
-			in.functions{n} = @(d,~) d{n} ./ d{1};
+			in.function{n} = @(d,~) d{n} ./ (d{1}.^2);
 		end
 	elseif isnumeric(o)
 		in.images{n} = o;
