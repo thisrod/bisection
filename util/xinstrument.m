@@ -6,7 +6,8 @@ function in = xinstrument(in, varargin)
 %   out = XINSTRUMENT(in, O1, O2) returns the input structure with Os appended
 %   to its observables.
 %   
-%   out = XINSTRUMENT(in, O, N) sets the corresponding element of images
+%   out = XINSTRUMENT(in, O, N) sets the corresponding element of
+%   images
 %   to the integer N.
 %   
 %   out = XINSTRUMENT(in, O, @F(t,in)) sets a comparison function.
@@ -58,7 +59,7 @@ if ~strcmp(varargin, 'ntw'), varargin = ['ntw', varargin]; end
 
 n = 0;
 for o = varargin
-	o = o{:};
+    o = o{:};
 	if ischar(o)
 		n = n + 1;
 		% ls = 0;
@@ -73,7 +74,7 @@ for o = varargin
 		in.transforms(n) = obs.transforms(o);
 		in.pdimension(n) = obs.pdimension(o);
 		if strcmp(o, 'g2tw')
-			in.functions{n} = @(d,~) d{n} ./ d{1};
+			in.function{n} = @(d,~) d{n} ./ (d{1}.^2);
 		end
 	elseif isnumeric(o)
 		in.images{n} = o;
