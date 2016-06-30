@@ -13,7 +13,6 @@ r = xgrid(r);	% get XPDE data
 mu = (r.a.Teqm + r.a.Keqm + r.a.Reqm)/r.a.N;
 M = mu*eye(r.nspace);
 Bother = diag(r.a.g*abs(a).^2);
-keyboard
 Bself = -ssd(r, 'lap') + diag(K) + 2*Bother;
 BdG = [Bself-M, -Bother; Bother, -Bself+M];
 % project onto space orthogonal to a0
