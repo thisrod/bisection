@@ -18,10 +18,11 @@ BdG = [Bself-M, -Bother; Bother, -Bself+M];
 % project onto space orthogonal to a0
 % This could go wrong if, for some i, A(:,1:i) is almost rank-deficient.  Apparently a single Householder reflection is the right way to do it.  Cross that bridge if we come to it. 
 [U1,~] = qr([a eye(numel(a), numel(a)-1)]);  U1 = U1(:, 2:end);
+% FIXME the variable U is also used for the BdG modes
 U = kron(eye(2), U1);
 tic; [ev,ew] = eig(U'*BdG*U, 'vector'); toc
 
-assert(norm(imag(ew)) / norm(ew) < 1e-5), ew = real(ew);
+assert(all(neareal(ew)), 'Complex Bogoliubov mode frequencies')
 
 % remove (u,v,e) (v,u,-e) degeneracy and sort by increasing eigenvalue
 ev = ev(:, ew>0);  ew = ew(ew>0);
@@ -38,6 +39,7 @@ for i = 1:2:length(ixodd)
 	B(:,ix+1) = B(:,ix+1) / norm(B(:,ix+1));
 end
 
+
 % separate u and v modes, then normalise
 modes = reshape(B,r.nspace,2,[]);
 c = r.dV*sum(abs(modes(:,1,:)).^2 - abs(modes(:,2,:)).^2);
@@ -45,6 +47,10 @@ c = 1./sqrt(c);
 modes = modes.*repmat(c,r.nspace,2,1);
 
 U = squeeze(modes(:,1,:));  V = squeeze(modes(:,2,:));
+
+assert(all(neareal(U(:))), 'Complex Bogoliubov mode functions')
+assert(all(neareal(V(:))), 'Complex Bogoliubov mode functions')
+
 if norm(U(:,1)) > 0.1*norm(a)
 	warning(sprintf('The mean field approximation is dodgy: a normalised Bogoliubov mode has %.1e particles, but the order parameter has only %.1e particles.\n', r.dV*norm(U(:,1))^2, r.dV*norm(a)^2))
 end
@@ -53,3 +59,4 @@ save buvdebug.mat ew U V
 r.a.ew = ew;  r.a.U = U;  r.a.V = V;
 
 end
+	
