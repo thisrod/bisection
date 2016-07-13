@@ -15,12 +15,20 @@ M = mu*eye(r.nspace);
 Bother = diag(r.a.g*abs(a).^2);
 Bself = -ssd(r, 'lap') + diag(K) + 2*Bother;
 BdG = [Bself-M, -Bother; Bother, -Bself+M];
-% project onto space orthogonal to a0
-% This could go wrong if, for some i, A(:,1:i) is almost rank-deficient.  Apparently a single Householder reflection is the right way to do it.  Cross that bridge if we come to it. 
+
+% form an orthonormal basis for the space orthogonal to a from
+% columns 2:end of the Householder reflector that takes a to e1
+opmode = a/norm(a);
+R = eye(r.nspace);
+v = R(:,1);  if sign(opmode(1)) < 0, v = -v; end
+v = v + opmode;
+R = R - 2*v*v'/(v'*v);  R = R(:, 2:end);
+
+% Less stable way
 [U1,~] = qr([a eye(numel(a), numel(a)-1)]);  U1 = U1(:, 2:end);
-% FIXME the variable U is also used for the BdG modes
-U = kron(eye(2), U1);
-tic; [ev,ew] = eig(U'*BdG*U, 'vector'); toc
+
+R = kron(eye(2), R);
+[ev,ew] = eig(R'*BdG*R, 'vector');
 
 assert(all(neareal(ew)), 'Complex Bogoliubov mode frequencies')
 
@@ -30,7 +38,10 @@ ev = ev(:, ew>0);  ew = ew(ew>0);
 
 % Fix numerical quirk where some modes are elliptically polarised
 % N.B. this works so far, but might not be a general solution
-B = U*ev;
+B = R*ev;
+
+keyboard
+
 ixodd = find(sqrt(sum(imag(ev).^2)) > 0.1);
 for i = 1:2:length(ixodd)
 	ix = ixodd(i);
@@ -38,7 +49,6 @@ for i = 1:2:length(ixodd)
 	B(:,ix) = B(:,ix) / norm(B(:,ix));
 	B(:,ix+1) = B(:,ix+1) / norm(B(:,ix+1));
 end
-
 
 % separate u and v modes, then normalise
 modes = reshape(B,r.nspace,2,[]);
