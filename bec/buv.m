@@ -8,7 +8,8 @@ a = r.a.op;
 K = r.a.K(r);  K = K(1:r.nspace);
 r = xgrid(r);	% get XPDE data
 
-%   There are nspace-1 modes, and the missing one is the ground state.
+%   The missing mode is the ground state.
+nm = r.nspace - 1;
 
 mu = (r.a.Teqm + r.a.Keqm + r.a.Reqm)/r.a.N;
 M = mu*eye(r.nspace);
@@ -35,6 +36,13 @@ assert(all(neareal(ew)), 'Complex Bogoliubov mode frequencies')
 % remove (u,v,e) (v,u,-e) degeneracy and sort by increasing eigenvalue
 ev = ev(:, ew>0);  ew = ew(ew>0);
 [ew, i] = sort(ew);  ev = ev(:,i);
+
+% p(i) is the column of ev that column i of Q was taken from
+% ... but sometimes we take real(ev(i)) and imag(ev(i)), and leave ev(i+-1)
+[Q,~,p] = qr([real(ev) imag(ev)], 'vector');
+p = p(1:nm);  ix = p>nm;  p(ix) = p(ix) - nm;
+eev = nan(size(ev));  eev(:,p) = Q(:,1:nm);
+
 
 % Fix numerical quirk where some modes are elliptically polarised
 % N.B. this works so far, but might not be a general solution
