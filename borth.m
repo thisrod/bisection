@@ -32,6 +32,22 @@ new_modes = new_modes.*repmat(c,r.nspace,2,1);
 
 UU = squeeze(new_modes(:,1,:));  VV = squeeze(new_modes(:,2,:));
 
+% how well do (u,v) satisfy the BdG problem?
+
+figure, semilogy(1:N, sqrt(sum(abs(BdG*B-B*diag(ew)))), 'ok'), hold on
+
+% how well do the real and imaginary parts of (u,v) satisfy the BdG problem?
+
+BR = [imag(B) real(B)];  ewR = [ew; ew];
+semilogy(1:2*N, sqrt(sum(abs(BdG*BR-BR*diag(ewR)))), '+k')
+
+
+
+
+figure, plot(r.x, real(U(:,19)), '-k', r.x, imag(U(:,19)), '-r', r.x, real(U(:,20)), '--k', r.x, imag(U(:,20)), '--r')
+	title 'anomalous mode functions'
+figure, plot(r.x, real(UU(:,19)), '-k', r.x, imag(UU(:,19)), '-r', r.x, real(UU(:,20)), '--k', r.x, imag(UU(:,20)), '--r')
+	title 'anomalous fixed mode functions'
 figure, plot(1:N, nms(1,:), 'ok', 1:N, nms(2,:), 'xk', [1:N; 1:N], nms, '-k' );
 	title 'norms of U and V modes'
 figure, plot(1:N, real(ew), '.k', 1:N, imag(ew), '.r')
