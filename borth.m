@@ -1,53 +1,70 @@
 % working script for Bogoliubov mode orthogonalisation
 
 N = r.nspace -1;
-modes = reshape(B,r.nspace,2,[]);
-U = squeeze(modes(:,1,:));  V = squeeze(modes(:,2,:));
 keys = round(ew, 10);		% identify ews that are within 1e-10
 
 X = r.dV*(U'*U - V'*V);
-nmsq = squeeze(r.dV*sum(abs(modes).^2));  nms = sqrt(nmsq);
+Un = r.dV*sum(abs(U).^2);  Vn = r.dV*sum(abs(V).^2);
 
-new_modes = nan(size(modes));
+UU = nan(size(U));  VV = nan(size(V));
 
 for key = unique(keys)'
-	tmp = find(keys == key);
-	if numel(tmp) == 1
-		new_modes(:,:,tmp) = modes(:,:,tmp);
+	ixs = find(keys == key);
+	if numel(ixs) == 1
+		UU(:,ixs) = U(:,ixs);  VV(:,ixs) = V(:,ixs);
 		continue
 	end
-	assert(numel(tmp) == 2);
-	j = tmp(1);  k = tmp(2);
-	numerator = -X(j,k) + sqrt(X(j,k)^2-(nmsq(1,j)-nmsq(2,j))*(nmsq(1,k)-nmsq(2,k)));
-	l = numerator/(nmsq(1,k)-nmsq(2,k));
-	m = numerator/(nmsq(1,j)-nmsq(2,j));
+	assert(numel(ixs) == 2);
+	j = ixs(1);  k = ixs(2);
+	numerator = -X(j,k) + sqrt(X(j,k)^2-(Un(j)-Vn(j))*(Un(k)-Vn(k)));
+	l = numerator/(Un(k)-Vn(k));
+	m = numerator/(Un(j)-Vn(j));
 
-	new_modes(:,:,j) = modes(:,:,j) + l*modes(:,:,k);
-	new_modes(:,:,k) = modes(:,:,k) + m*modes(:,:,j);
+	UU(:,j) = U(:,j) + l*U(:,k);  VV(:,j) = V(:,j) + l*V(:,k);  
+	UU(:,k) = U(:,k) + m*U(:,j);  VV(:,k) = V(:,k) + l*V(:,j);  
 end
 
-c = r.dV*sum(abs(new_modes(:,1,:)).^2 - abs(new_modes(:,2,:)).^2);
+UUn = r.dV*sum(abs(UU).^2);  VVn = r.dV*sum(abs(VV).^2);
+
+c = UUn - VVn;
 c = 1./sqrt(c);
-new_modes = new_modes.*repmat(c,r.nspace,2,1);
+UU = UU.*repmat(c,r.nspace,1);  VV = VV.*repmat(c,r.nspace,1);  
 
-UU = squeeze(new_modes(:,1,:));  VV = squeeze(new_modes(:,2,:));
+% new_modes = new_modes.*repmat(c,r.nspace,2,1);
+% 
+% UU = squeeze(new_modes(:,1,:));  VV = squeeze(new_modes(:,2,:));
 
-% how well do (u,v) satisfy the BdG problem?
+% Check that BM satisfies the equation it should
+Prdl = (H0^2 + 2*r.a.g*diag(abs(a).^2))*H0*BP - BP*diag(ew.^2);
+Mrdl = (H0^2 + 2*r.a.g*H0*diag(abs(a).^2))*BM - BM*diag(ew.^2);
+figure, plot(1:N, sqrt(sum(abs(Prdl).^2)), '+k', ...
+	1:N, sqrt(sum(abs(Mrdl).^2)), 'ok')
+title 'residuals', legend '\psi^+' '\psi^-'
 
-figure, semilogy(1:N, sqrt(sum(abs(BdG*B-B*diag(ew)))), 'ok'), hold on
+figure, plot(1:N, real(ew), '.k', 1:N, imag(ew), '.r')
+	title 'mode frequencies', legend real imag Location Best
 
-% how well do the real and imaginary parts of (u,v) satisfy the BdG problem?
+% confirm that orthogonalised (u,v) satisfy the BdG problem?
 
-BR = [imag(B) real(B)];  ewR = [ew; ew];
-semilogy(1:2*N, sqrt(sum(abs(BdG*BR-BR*diag(ewR)))), '+k')
+Urhs = H0*UU+r.a.g*diag(abs(a).^2)*(UU-VV);
+Vrhs = H0*VV+r.a.g*diag(abs(a).^2)*(VV-UU);
 
+figure, semilogy(1:N, sqrt(sum(abs(Urhs-UU*diag(ew)))) ./ sqrt(UUn+VVn), '^k', ...
+	1:N, sqrt(sum(abs(Vrhs+VV*diag(ew)))) ./ sqrt(UUn+VVn), 'vk')
+title 'fractional residuals of BdG problem', legend u v
 
+figure, imagesc(abs(r.dV*(U'*U - V'*V))), axis image, colormap gray, colorbar
+title 'raw self products'
 
+figure, imagesc(abs(r.dV*(U.'*V - V.'*U))), axis image, colormap gray, colorbar
+title 'raw cross products'
 
-figure, plot(r.x, real(U(:,19)), '-k', r.x, imag(U(:,19)), '-r', r.x, real(U(:,20)), '--k', r.x, imag(U(:,20)), '--r')
-	title 'anomalous mode functions'
-figure, plot(r.x, real(UU(:,19)), '-k', r.x, imag(UU(:,19)), '-r', r.x, real(UU(:,20)), '--k', r.x, imag(UU(:,20)), '--r')
-	title 'anomalous fixed mode functions'
+figure, imagesc(abs(r.dV*(UU'*UU - VV'*VV))), axis image, colormap gray, colorbar
+title 'corrected self products (should be Id)'
+
+figure, imagesc(abs(r.dV*(UU.'*VV - VV.'*UU))), axis image, colormap gray, colorbar
+title 'corrected cross products (should be zero)'
+
 figure, plot(1:N, nms(1,:), 'ok', 1:N, nms(2,:), 'xk', [1:N; 1:N], nms, '-k' );
 	title 'norms of U and V modes'
 figure, plot(1:N, real(ew), '.k', 1:N, imag(ew), '.r')
@@ -55,13 +72,5 @@ figure, plot(1:N, real(ew), '.k', 1:N, imag(ew), '.r')
 ew = real(ew);
 figure, semilogy(1:N-1, ew(2:end)-ew(1:end-1), '+k')
 	title 'mode frequency steps'
-figure, imagesc(abs(X)), axis image, colormap gray, colorbar
-title 'raw self products'
-figure, imagesc(abs(r.dV*(U.'*V - V.'*U))), axis image, colormap gray, colorbar
-title 'raw cross products'
-figure, imagesc(abs(r.dV*(UU'*UU - VV'*VV))), axis image, colormap gray, colorbar
-title 'corrected self products (should be Id)'
-figure, imagesc(abs(r.dV*(UU.'*VV - VV.'*UU))), axis image, colormap gray, colorbar
-title 'corrected cross products (should be zero)'
 
 % checks

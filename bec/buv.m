@@ -12,10 +12,6 @@ r = xgrid(r);	% get XPDE data
 nm = r.nspace - 1;
 
 mu = (r.a.Teqm + r.a.Keqm + r.a.Reqm)/r.a.N;
-M = mu*eye(r.nspace);
-Bother = diag(r.a.g*abs(a).^2);
-Bself = -ssd(r, 'lap') + diag(K) + 2*Bother;
-BdG = [Bself-M, -Bother; Bother, -Bself+M];
 
 % form an orthonormal basis for the space orthogonal to a from
 % columns 2:end of the Householder reflector that takes a to e1
@@ -25,28 +21,29 @@ v = R(:,1);  if sign(opmode(1)) < 0, v = -v; end
 v = v + opmode;
 R = R - 2*v*v'/(v'*v);  R = R(:, 2:end);
 
-% Less stable way
-[U1,~] = qr([a eye(numel(a), numel(a)-1)]);  U1 = U1(:, 2:end);
+% Solve equation 4 of prl-78-1842
 
-R = kron(eye(2), R);
+H0 = -ssd(r, 'lap') + diag(K) + r.a.g*diag(abs(a).^2) - mu*eye(r.nspace);
+BdG = H0^2 + 2*r.a.g*diag(abs(a).^2)*H0;
+
 [ev,ew] = eig(R'*BdG*R, 'vector');
 
-assert(all(neareal(ew)), 'Complex Bogoliubov mode frequencies')
+if all(neareal(ew))
+	ew = real(ew);
+else
+	error('Complex Bogoliubov mode frequencies')
+end
 
-% remove (u,v,e) (v,u,-e) degeneracy and sort by increasing eigenvalue
-ev = ev(:, ew>0);  ew = ew(ew>0);
+% sort by increasing eigenvalue
 [ew, i] = sort(ew);  ev = ev(:,i);
 
-% p(i) is the column of ev that column i of Q was taken from
-% ... but sometimes we take real(ev(i)) and imag(ev(i)), and leave ev(i+-1)
-[Q,~,p] = qr([real(ev) imag(ev)], 'vector');
-p = p(1:nm);  ix = p>nm;  p(ix) = p(ix) - nm;
-eev = nan(size(ev));  eev(:,p) = Q(:,1:nm);
-
+% get mode freqencies
+ew = sqrt(ew);
 
 % Fix numerical quirk where some modes are elliptically polarised
 % N.B. this works so far, but might not be a general solution
-B = R*ev;
+BP = R*ev;  BM = H0*BP./repmat(ew',r.nspace,1);
+U = (BP+BM)/2;  V = (BP-BM)/2;
 
 keyboard
 
