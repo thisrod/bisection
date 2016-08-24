@@ -2,6 +2,9 @@
 
 N = r.nspace -1;
 keys = round(ew, 10);		% identify ews that are within 1e-10
+L = r.ranges(2)*(r.points(2)+1)/r.points(2);	% circular length
+r.a.healing = sqrt(L/r.a.Reqm);
+kk = 2*pi*floor(1:0.5:r.points(2)/2)/L;	% bdg mode wave numbers
 
 X = r.dV*(U'*U - V'*V);
 Un = r.dV*sum(abs(U).^2);  Vn = r.dV*sum(abs(V).^2);
@@ -41,8 +44,8 @@ figure, plot(1:N, sqrt(sum(abs(Prdl).^2)), '+k', ...
 	1:N, sqrt(sum(abs(Mrdl).^2)), 'ok')
 title 'residuals', legend '\psi^+' '\psi^-'
 
-figure, plot(1:N, real(ew), '.k', 1:N, imag(ew), '.r')
-	title 'mode frequencies', legend real imag Location Best
+figure, plot(1:N, real(ew), 'ok', 1:N, imag(ew), '.r', 1:N, sqrt(2)*kk/r.a.healing, '+k')
+	title 'mode frequencies', legend real imag 'dspn relation' Location Best
 
 % confirm that orthogonalised (u,v) satisfy the BdG problem?
 
