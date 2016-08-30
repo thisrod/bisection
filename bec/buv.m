@@ -40,38 +40,59 @@ end
 % get mode freqencies
 ew = sqrt(ew);
 
-% Fix numerical quirk where some modes are elliptically polarised
-% N.B. this works so far, but might not be a general solution
 BP = R*ev;  BM = H0*BP./repmat(ew',r.nspace,1);
 U = (BP+BM)/2;  V = (BP-BM)/2;
-
-keyboard
-
-ixodd = find(sqrt(sum(imag(ev).^2)) > 0.1);
-for i = 1:2:length(ixodd)
-	ix = ixodd(i);
-	B(:,ix:ix+1) = [real(B(:,ix)) imag(B(:,ix))];
-	B(:,ix) = B(:,ix) / norm(B(:,ix));
-	B(:,ix+1) = B(:,ix+1) / norm(B(:,ix+1));
-end
-
-% separate u and v modes, then normalise
-modes = reshape(B,r.nspace,2,[]);
-c = r.dV*sum(abs(modes(:,1,:)).^2 - abs(modes(:,2,:)).^2);
-c = 1./sqrt(c);
-modes = modes.*repmat(c,r.nspace,2,1);
-
-U = squeeze(modes(:,1,:));  V = squeeze(modes(:,2,:));
 
 assert(all(neareal(U(:))), 'Complex Bogoliubov mode functions')
 assert(all(neareal(V(:))), 'Complex Bogoliubov mode functions')
 
-if norm(U(:,1)) > 0.1*norm(a)
-	warning(sprintf('The mean field approximation is dodgy: a normalised Bogoliubov mode has %.1e particles, but the order parameter has only %.1e particles.\n', r.dV*norm(U(:,1))^2, r.dV*norm(a)^2))
+% where modes are degeneate, impose conditions to diagonalise H
+
+keys = round(ew, 10);		% identify ews that are within 1e-10
+
+F = r.dV*(U'*U - V'*V);  G = r.dV*(U'*V-V'*U);
+Un = r.dV*sum(abs(U).^2);  Vn = r.dV*sum(abs(V).^2);
+
+UU = nan(size(U));  VV = nan(size(V));
+
+for key = unique(keys)'
+	ixs = find(keys == key);
+	if numel(ixs) == 1
+		UU(:,ixs) = U(:,ixs);  VV(:,ixs) = V(:,ixs);
+		continue
+	end
+	assert(numel(ixs) == 2);
+	j = ixs(1);  k = ixs(2);
+	if r.dV*abs(G(j,k)) < 1e-6	% close enough to zero?
+		m = 0;  l = -F(j,k)/F(k,k);
+	else
+		numerator = -F(j,k) + sqrt(F(j,k)^2-(Un(j)-Vn(j))*(Un(k)-Vn(k)));
+		l = numerator/(Un(k)-Vn(k));
+		m = numerator/(Un(j)-Vn(j));
+	end
+
+	% in the untrapped gas, mm will turn out zero
+	ll(j) = l;  ll(k) = l;  mm(j) = m;  mm(k) = m;
+
+	UU(:,j) = U(:,j) + l*U(:,k);  VV(:,j) = V(:,j) + l*V(:,k);  
+	UU(:,k) = U(:,k) + m*U(:,j);  VV(:,k) = V(:,k) + m*V(:,j);  
 end
 
-save buvdebug.mat ew U V
-r.a.ew = ew;  r.a.U = U;  r.a.V = V;
+% normalise modes to have boson commutation relations
+
+UUn = r.dV*sum(abs(UU).^2);  VVn = r.dV*sum(abs(VV).^2);
+
+c = UUn - VVn;
+c = 1./sqrt(c);
+UU = UU.*repmat(c,r.nspace,1);  VV = VV.*repmat(c,r.nspace,1);  
+
+keyboard	% run borth checks here
+
+if norm(UU(:,1)) > 0.1*norm(a)
+	warning(sprintf('The mean field approximation is dodgy: a normalised Bogoliubov mode has %.1e particles, but the order parameter has only %.1e particles.\n', r.dV*norm(UU(:,1))^2, r.dV*norm(a)^2))
+end
+
+r.a.ew = ew;  r.a.U = UU;  r.a.V = VV;
 
 end
 	
