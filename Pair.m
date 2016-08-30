@@ -41,7 +41,7 @@ coherent.ensembles = [1 1 2];
 coherent = xinstrument(coherent, 'ntw', 'g2tw', @(t,in) 1);
 wait.name = 'oscillating correlations from coherent initial state';
 wait.ensembles = coherent.ensembles;
-% xspde({coherent, wait})
+xspde({coherent, wait})
 
 % configure Bogoliubov ground state sampling
 

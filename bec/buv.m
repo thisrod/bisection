@@ -86,7 +86,7 @@ c = UUn - VVn;
 c = 1./sqrt(c);
 UU = UU.*repmat(c,r.nspace,1);  VV = VV.*repmat(c,r.nspace,1);  
 
-keyboard	% run borth checks here
+% keyboard	% run borth checks here
 
 if norm(UU(:,1)) > 0.1*norm(a)
 	warning(sprintf('The mean field approximation is dodgy: a normalised Bogoliubov mode has %.1e particles, but the order parameter has only %.1e particles.\n', r.dV*norm(UU(:,1))^2, r.dV*norm(a)^2))
