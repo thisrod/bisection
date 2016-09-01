@@ -25,7 +25,6 @@ R = R - 2*v*v'/(v'*v);  R = R(:, 2:end);
 
 H0 = -ssd(r, 'lap') + diag(K) + r.a.g*diag(abs(a).^2) - mu*eye(r.nspace);
 BdG = H0^2 + 2*r.a.g*diag(abs(a).^2)*H0;
-
 [ev,ew] = eig(R'*BdG*R, 'vector');
 
 if all(neareal(ew))
@@ -43,11 +42,17 @@ ew = sqrt(ew);
 BP = R*ev;  BM = H0*BP./repmat(ew',r.nspace,1);
 W = [BP+BM; BP-BM]/2;
 
-% where modes are degenerate, 
-% and impose conditions to diagonalise H
+% The BdG eigenproblem for a trapped gas has a solution where all the
+% mode functions are real.  However, the numerical eigensolver can
+% go wonky when the mode frequencies are degenerate, especially because
+% the matrix BdG is not normal.  It can return arbitrary complex
+% superpositions of the nice degenerate modes.  These are unlikely
+% to satisfy the "orthonormality" conditions that diagonalise the
+% Hamiltonian, so this routine must impose those explicitly.  Hence
+% the following loop over eigenspaces.
 
 WW = nan(size(W));
-keys = round(ew, 10);		% identify ews that are within 1e-10
+keys = round(ew, 10);	% treat ews that agree within 1e-10 as degenerate
 
 for key = unique(keys)'
 	ixs = find(keys == key);
