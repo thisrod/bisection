@@ -41,50 +41,48 @@ end
 ew = sqrt(ew);
 
 BP = R*ev;  BM = H0*BP./repmat(ew',r.nspace,1);
-U = (BP+BM)/2;  V = (BP-BM)/2;
+W = [BP+BM; BP-BM]/2;
 
-assert(all(neareal(U(:))), 'Complex Bogoliubov mode functions')
-assert(all(neareal(V(:))), 'Complex Bogoliubov mode functions')
+% where modes are degenerate, 
+% and impose conditions to diagonalise H
 
-% where modes are degeneate, impose conditions to diagonalise H
-
+WW = nan(size(W));
 keys = round(ew, 10);		% identify ews that are within 1e-10
-
-F = r.dV*(U'*U - V'*V);  G = r.dV*(U'*V-V'*U);
-Un = r.dV*sum(abs(U).^2);  Vn = r.dV*sum(abs(V).^2);
-
-UU = nan(size(U));  VV = nan(size(V));
 
 for key = unique(keys)'
 	ixs = find(keys == key);
+	
+	% linearly combine re and im parts to get real modes
+	w = W(:,ixs);
+	[w,~,~] = svd([real(w), imag(w)], 'econ');
+	w = w(:, 1:end/2);  u = w(1:end/2, :);  v = w(end/2+1:end, :);
+	
+	% set ll to the fraction of the pair that gets mixed into this mode
 	if numel(ixs) == 1
-		UU(:,ixs) = U(:,ixs);  VV(:,ixs) = V(:,ixs);
-		continue
-	end
-	assert(numel(ixs) == 2);
-	j = ixs(1);  k = ixs(2);
-	if r.dV*abs(G(j,k)) < 1e-6	% close enough to zero?
-		m = 0;  l = -F(j,k)/F(k,k);
+		ll(ixs) = 0;
+	elseif numel(ixs) == 2
+		F = r.dV*(u'*u - v'*v);  G = r.dV*(u'*v-v'*u);
+		if abs(G(1,2)) < 1e-8		% already orthogonal
+			m = 0;  l = -F(1,2)/F(2,2);
+		else
+			ntr = -F(1,2) + sqrt(F(1,2)^2-F(1,1)*F(2,2));
+			l = ntr/F(2,2);
+			m = ntr/F(1,1);
+		end
+		ll(ixs) = [l m];  w = w*[1 m; l 1];
 	else
-		numerator = -F(j,k) + sqrt(F(j,k)^2-(Un(j)-Vn(j))*(Un(k)-Vn(k)));
-		l = numerator/(Un(k)-Vn(k));
-		m = numerator/(Un(j)-Vn(j));
+		error 'Implementation restriction: can handle at most two degenerate modes'
 	end
-
-	% in the untrapped gas, mm will turn out zero
-	ll(j) = l;  ll(k) = l;  mm(j) = m;  mm(k) = m;
-
-	UU(:,j) = U(:,j) + l*U(:,k);  VV(:,j) = V(:,j) + l*V(:,k);  
-	UU(:,k) = U(:,k) + m*U(:,j);  VV(:,k) = V(:,k) + m*V(:,j);  
+	
+	WW(:,ixs) = w;
 end
 
-% normalise modes to have boson commutation relations
-
-UUn = r.dV*sum(abs(UU).^2);  VVn = r.dV*sum(abs(VV).^2);
-
-c = UUn - VVn;
+% normalise modes
+UU = WW(1:end/2,:);  VV = WW(end/2+1:end, :);
+c = r.dV*sum(abs(UU).^2-abs(VV).^2);
 c = 1./sqrt(c);
-UU = UU.*repmat(c,r.nspace,1);  VV = VV.*repmat(c,r.nspace,1);  
+WW = WW.*repmat(c, 2*r.nspace, 1);
+UU = WW(1:end/2,:);  VV = WW(end/2+1:end, :);
 
 % keyboard	% run borth checks here
 
