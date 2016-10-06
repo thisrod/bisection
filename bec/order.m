@@ -10,7 +10,7 @@ if isfield(in, 'name')
 	in.name =	sprintf('Equilibrium order parameter with %d atoms for %s', N, in.name);
 end
 in.step = @(a,xi,r) nrmstp(a,xi,r,N);
-% in.initial = @(w,r) ones(size(r.x));
+% check if this allows for missing step of circular grid
 in.initial = @(w,r) repmat(sqrt(r.a.N/r.V), r.d.a);
 f = in.da;  g = in.linear;
 in.da = @(a,w,r) -1i*f(a,w,r);

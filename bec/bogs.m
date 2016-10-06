@@ -9,6 +9,8 @@ function in = ground(in)
 
 % [in.a.bew, in.a.U, in.a.V] = buv(in,in.a.Kludge,in.a.op);
 
+% TODO: check that grid spacing is less than healing length, so that we're including all the real particles added by the Bogoliubov transformation.
+
 in.grid = @buv;
 in.initial = @init;
 % set ranges(1) and points(1) here for null propagation
