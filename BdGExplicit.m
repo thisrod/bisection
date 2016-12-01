@@ -41,6 +41,7 @@ for gm = gms
 	system.initial = @init;
 	system = xinstrument(system, 'ntw', 'g2raw', 'Re', 'Im');
 	system.name = sprintf('\\gamma = %.2e', gm);
+keyboard
 
 	[~,~,out,~] = xspde(system);
 %	[~,~,out,~] = xsim(system);

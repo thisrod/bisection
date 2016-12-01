@@ -11,16 +11,8 @@ n1 = 7000/200;	% 1D density
 qrtfit,  L = 1;  N = 16;  h = 2*L/N;  
 x = h*(1:3*N)-3*L;  y = h*(1:N)-L;  [X,Y] = ndgrid(x,y);
 
-function D2=ssd(N,L)
-	% spectral second derivative, N points on (-L,L]
-	h = 2*pi./N;
-	column = [-pi^2/(3*h^2)-1/6 ...
-		-0.5*(-1).^(1:N-1)./sin(h*(1:N-1)/2).^2];
-	D2 = (pi/L)^2*toeplitz(column);
-endfunction
-
-dxx = ssd(3*N, 3*L);  Dxx = kron(eye(N), dxx);
-dyy = ssd(N, L);  Dyy = kron(dyy, eye(3*N));
+dxx = D2(3*N, 3*L);  Dxx = kron(eye(N), dxx);
+dyy = D2(N, L);  Dyy = kron(dyy, eye(3*N));
 LAP = Dxx + Dyy;
 
 hit = 6;					% Hartree iterations
