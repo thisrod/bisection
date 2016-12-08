@@ -32,31 +32,35 @@ wait = static(system, 0);
 wait.ranges(1) = 12;
 wait.points(1) = 49;
 wait.steps = 30;
-wait = xinstrument(wait, 'g2tw');
+wait = xinstrument(wait, 'ntw', 'g2raw', 'g2tw');
 
 % check that g2 is 1 for a coherent order parameter
 
 coherent = cogs(op);
 coherent.ensembles = [1 1 2];
-coherent = xinstrument(coherent, 'ntw', 'g2tw', @(t,in) 1);
+coherent = xinstrument(coherent, 'ntw', 'g2raw', 'g2tw');
 wait.name = 'oscillating correlations from coherent initial state';
 wait.ensembles = coherent.ensembles;
-xspde({coherent, wait})
+[~,~,out,~] = xspde({coherent, wait});
 
-% configure Bogoliubov ground state sampling
+nraw = squeeze(out{2}{1}(1,1,:,:));
+g2raw = squeeze(out{2}{2}(1,1,:,:));
 
-uvs = bogs(op);
+figure; surf(g2raw./nraw.^2); title 'Full ensemble g2'
 
-% sample a Bogoliubov ground state and sample g2
-
-uvs.ensembles = [1 1 2];
-uvs = xinstrument(uvs, 'N', 'Ntw', 'n', 'ntw', 'g2tw');
-
-% run it
-
-wait.name = 'stable correlations from bogoliubov initial state';
-wait.ensembles = uvs.ensembles;
-[~,out,~,~] = xspde({uvs, wait});
-
-% run buvplot to plot sound wave modes for validation
-
+% % configure Bogoliubov ground state sampling
+% 
+% uvs = bogs(op);
+% 
+% % sample a Bogoliubov ground state and sample g2
+% 
+% uvs.ensembles = [1 1 2];
+% uvs = xinstrument(uvs, 'N', 'Ntw', 'n', 'ntw', 'g2tw');
+% 
+% % run it
+% 
+% wait.name = 'stable correlations from bogoliubov initial state';
+% wait.ensembles = uvs.ensembles;
+% [~,out,~,~] = xspde({uvs, wait});
+% 
+% % run buvplot to plot sound wave modes for validation
